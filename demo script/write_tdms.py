@@ -3,9 +3,14 @@ from nptdms import TdmsWriter, ChannelObject
 import os
 from datetime import datetime
 
+def write_tdms():
+    # Your TDMS writing logic here
+    print("Writing TDMS file...")
+    return True
+
 def run(config, argument):
     # Create the base result directory if it doesn't exist
-    base_result_dir = r"F:\test sequencer\result TDMS"
+    base_result_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'result TDMS')
     os.makedirs(base_result_dir, exist_ok=True)
 
     # Generate a unique filename using the current timestamp

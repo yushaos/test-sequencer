@@ -3,6 +3,7 @@ import importlib.util
 import time
 import os
 import json
+import sys
 from ni_timer import NITimer
 from previous_sequences import PreviousSequences
 
@@ -99,48 +100,34 @@ class Scheduler:
         return len(self.errors) == 0  # Return True if no errors, False otherwise
         
     def execute_step(self, step):
-        try:
-            # Add debug logging
-            print(f"Executing step: {step.get('step_name')}")
-            print(f"Module path: {step.get('module_path')}")
-            print(f"Function name: {step.get('function_name')}")
-            
-            module_path = step.get('module_path')
-            function_name = step.get('function_name')
-            wait_time = step.get('wait_time', 0)
-            
-            if not module_path or not function_name:
-                print(f"Warning: No module/function for step: {step.get('step_name')}")
-                if wait_time:
-                    time.sleep(wait_time)
-                return True
-                
-            module = self.load_module(module_path)
-            if not module:
-                raise ImportError(f"Could not load module: {module_path}")
-                
-            func = getattr(module, function_name)
-            if not func:
-                raise AttributeError(f"Function {function_name} not found in module")
-            
-            # Debug: Print before execution
-            print(f"About to execute function {function_name} from {module_path}")
-            
-            # Execute the function and wait for result
-            result = func()
-            
-            # Debug: Print result
-            print(f"Step {step.get('step_name')} returned: {result}")
-            
-            if wait_time:
-                time.sleep(wait_time)
-                
-            return True if result is None else result
-            
-        except Exception as e:
-            print(f"Error in execute_step: {str(e)}")
-            raise Exception(f"Step execution failed: {str(e)}")
+        print(f"Starting execution of step: {step['step_name']}")
         
+        # Get the script location from step_location
+        script_path = step.get('step_location')
+        
+        if not script_path:
+            print("No script location provided")
+            return False
+            
+        try:
+            # Run the Python script as a subprocess
+            import subprocess
+            result = subprocess.run([sys.executable, script_path], 
+                                  capture_output=True, 
+                                  text=True)
+            
+            # Check if script executed successfully
+            if result.returncode == 0:
+                print(f"Script output: {result.stdout}")
+                return True
+            else:
+                print(f"Script failed with error: {result.stderr}")
+                return False
+                
+        except Exception as e:
+            print(f"Error executing script: {e}")
+            return False
+            
     def end_sequence(self):
         self.should_end_early = True
         print("Sequence ending early. Skipping to cleanup steps.")
@@ -150,6 +137,21 @@ class Scheduler:
             return None
         try:
             print(f"Attempting to load module from: {location}")
+            
+            # Convert relative path to absolute path
+            if location.startswith('./'):
+                # Get directory of the sequence file
+                base_dir = os.path.dirname(self.sequence_path)
+                location = os.path.join(base_dir, location[2:])
+            
+            # Handle spaces in path
+            location = os.path.abspath(location)
+            
+            print(f"Resolved path: {location}")
+            if not os.path.exists(location):
+                print(f"File not found: {location}")
+                return None
+                
             spec = importlib.util.spec_from_file_location("module", location)
             if spec is None:
                 print(f"Failed to create spec for module: {location}")

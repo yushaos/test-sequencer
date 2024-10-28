@@ -2,14 +2,14 @@
   "setup": [
     {
       "step_name": "hello world",
-      "step_location": "F:\\test sequencer\\demo script\\hello-world-python.py",
+      "step_location": "C:\\Users\\yusha\\Desktop\\test sequencer\\demo script\\hello-world-python.py",
       "config_location": "",
       "enable": true,
       "argument": ""
     },
     {
       "step_name": "wait3sec",
-      "step_location": "F:\\test sequencer\\demo script\\wait_3_seconds.py",
+      "step_location": "C:\\Users\\yusha\\Desktop\\test sequencer\\demo script\\wait_3_seconds.py",
       "config_location": "",
       "enable": true,
       "argument": ""
@@ -53,7 +53,7 @@
   "test": [
     {
       "step_name": "master trigger",
-      "step_location": "F:\\test sequencer\\demo script\\master_trigger.py",
+      "step_location": "C:\\Users\\yusha\\Desktop\\test sequencer\\demo script\\master_trigger.py",
       "config_location": "",
       "enable": false,
       "argument": ""
@@ -95,7 +95,7 @@
     },
     {
       "step_name": "wait3sec",
-      "step_location": "F:\\test sequencer\\demo script\\wait_3_seconds.py",
+      "step_location": "C:\\Users\\yusha\\Desktop\\test sequencer\\demo script\\wait_3_seconds.py",
       "config_location": "",
       "enable": true,
       "argument": ""
@@ -188,14 +188,14 @@
     },
     {
       "step_name": "write tdms",
-      "step_location": "F:\\test sequencer\\demo script\\write_tdms.py",
+      "step_location": "C:\\Users\\yusha\\Desktop\\test sequencer\\demo script\\write_tdms.py",
       "config_location": "",
       "enable": true,
       "argument": ""
     },
     {
       "step_name": "wait3sec cu",
-      "step_location": "F:\\test sequencer\\demo script\\wait_3_seconds.py",
+      "step_location": "C:\\Users\\yusha\\Desktop\\test sequencer\\demo script\\wait_3_seconds.py",
       "config_location": "",
       "enable": true,
       "argument": ""

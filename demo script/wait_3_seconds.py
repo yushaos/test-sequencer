@@ -1,12 +1,11 @@
 import time
 
-def run(config, argument):
-    print("Starting 3-second wait...")
+def wait_3_seconds():
+    print("Waiting for 3 seconds...")
     time.sleep(3)
-    print("3-second wait completed.")
     return True
 
 if __name__ == "__main__":
     # For testing the script directly
-    result = run({}, "test argument")
+    result = wait_3_seconds()
     print(f"The function returned: {result}")

@@ -2,7 +2,7 @@
   "setup": [
     {
       "step_name": "hello world",
-      "step_location": "F:\\test sequencer\\demo script\\hello-world-python.py",
+      "step_location": "C:\\Users\\yusha\\Desktop\\test sequencer\\demo script\\hello-world-python.py",
       "config_location": "",
       "enable": true,
       "argument": ""
@@ -181,7 +181,7 @@
     },
     {
       "step_name": "hello world2",
-      "step_location": "F:\\test sequencer\\demo script\\hello-world-python.py",
+      "step_location": "C:\\Users\\yusha\\Desktop\\test sequencer\\demo script\\hello-world-python.py",
       "config_location": "",
       "enable": true,
       "argument": ""
