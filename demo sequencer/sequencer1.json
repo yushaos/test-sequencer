@@ -99,6 +99,13 @@
       "config_location": "",
       "enable": true,
       "argument": ""
+    },
+	{
+      "step_name": "wait3sec",
+      "step_location": "C:\\Users\\yusha\\Desktop\\test sequencer\\demo script\\wait_3_seconds.py",
+      "config_location": "",
+      "enable": true,
+      "argument": ""
     }
   ],
   "cleanup": [

@@ -4,7 +4,7 @@ import os
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLabel, QListWidget, QFileDialog, QProgressBar, QTableWidget, QTableWidgetItem, QMenu, QAction,
-    QListWidgetItem
+    QListWidgetItem, QHeaderView
 )
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QFont, QColor, QBrush
@@ -35,19 +35,20 @@ def run_steps_worker(steps, step_queue, result_queue):
     for section, section_steps in steps.items():
         result_queue.put(('section', section))
         
-        for step in section_steps:
+        for step_index, step in enumerate(section_steps):
             if not step['enable']:
                 continue
 
-            # Notify step start
+            # Send both step name AND index
             result_queue.put(('step_start', {
                 'current': current_step,
                 'total': total_steps,
-                'name': step['step_name']
+                'name': step['step_name'],
+                'list_index': current_step  # Add this line
             }))
 
             try:
-                # Start step execution
+                start_time = time.time()
                 step_thread = StepExecutionThread(scheduler, step)
                 step_thread.start()
                 
@@ -75,12 +76,16 @@ def run_steps_worker(steps, step_queue, result_queue):
                     result_queue.put(('error', f"Step '{step['step_name']}' did not return True"))
                     return False
                 
-                # Step completed successfully
+                # Calculate duration
+                duration = time.time() - start_time
+                
+                # Include duration in step complete message
                 result_queue.put(('step_complete', {
                     'current': current_step,
                     'total': total_steps,
                     'name': step['step_name'],
-                    'result': True
+                    'result': True,
+                    'duration': duration
                 }))
 
             except Exception as e:
@@ -151,6 +156,8 @@ class TestSequencer(QMainWindow):
         self.step_timer.timeout.connect(self.check_step_result)
         self.step_timer.start(100)  # Check every 100ms
 
+        self.current_section = ""  # Add this line
+
     def setup_ui(self):
         # Top Button Layout
         top_button_layout = QHBoxLayout()
@@ -195,10 +202,18 @@ class TestSequencer(QMainWindow):
         center_layout.addWidget(QLabel("Test Progress"))
         center_layout.addWidget(self.progress_bar)
 
+        # Modify the test details table setup
         self.table_placeholder = QTableWidget()
         self.table_placeholder.setRowCount(0)
-        self.table_placeholder.setColumnCount(3)
-        self.table_placeholder.setHorizontalHeaderLabels(["Column 1", "Column 2", "Column 3"])
+        self.table_placeholder.setColumnCount(2)  # Only 2 columns now
+        self.table_placeholder.setHorizontalHeaderLabels(["Step Name", "Duration"])
+        
+        # Set column widths
+        header = self.table_placeholder.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.Stretch)  # Step name column stretches
+        header.setSectionResizeMode(1, QHeaderView.Fixed)    # Fixed width for duration
+        self.table_placeholder.setColumnWidth(1, 100)        # Set width for duration column
+        
         center_layout.addWidget(QLabel("Test Details"))
         center_layout.addWidget(self.table_placeholder)
         
@@ -211,7 +226,10 @@ class TestSequencer(QMainWindow):
         right_layout.addWidget(QLabel("Status"))
         right_layout.addWidget(self.status_list)
         
+        # Modify the error list widget setup
         self.error_list = QListWidget()
+        self.error_list.setWordWrap(True)  # Enable word wrap
+        self.error_list.setStyleSheet("QListWidget { color: red; }")  # Make text red
         right_layout.addWidget(QLabel("Errors"))
         right_layout.addWidget(self.error_list)
         
@@ -249,25 +267,32 @@ class TestSequencer(QMainWindow):
                 self, 
                 "Load Sequence", 
                 default_dir, 
-                "JSON Files (*.json)"  # Changed from CSV to JSON
+                "JSON Files (*.json)"
             )
         
         if file_name:
-            if not os.path.exists(file_name):
-                self.add_error_message(f"Error: Sequence file not found: {file_name}")
-                return
             try:
-                self.sequence_list.clear()
-                self.scheduler.load_sequence(file_name)  # Scheduler needs to be updated too
-                self.update_sequence_list()
-                self.status_list.clear()
+                # Clear errors first
                 self.error_list.clear()
-                self.status_list.addItem(f"Loaded sequence: {file_name}")
+                self.status_list.clear()
+                
+                if not os.path.exists(file_name):
+                    self.error_box.add_error_message(f"Error: Sequence file not found: {file_name}")
+                    return
+                
+                self.sequence_list.clear()
+                self.scheduler.load_sequence(file_name)
+                self.update_sequence_list()
+                self.status_box.add_status(f"Loaded sequence: {file_name}")
                 
                 self.run_btn.setEnabled(True)
                 self.end_sequence_btn.setEnabled(False)
+                
             except Exception as e:
-                self.add_error_message(f"Error loading sequence: {str(e)}")
+                self.error_box.add_error_message(f"Error loading sequence: {str(e)}")
+                self.run_btn.setEnabled(False)
+                self.end_sequence_btn.setEnabled(False)
+                self.sequence_list.clear()
 
     def update_sequence_list(self):
         self.sequence_list.clear()
@@ -303,18 +328,25 @@ class TestSequencer(QMainWindow):
 
     def check_step_result(self):
         try:
-            while True:  # Process all available messages
+            while True:
                 msg_type, data = self.result_queue.get_nowait()
                 
                 if msg_type == 'section':
+                    self.current_section = data  # Add this line
+                    if data.lower() == 'test':
+                        self.clear_test_details()  # Clear table when test section starts
                     self.status_box.add_section_status(data)
                 
                 elif msg_type == 'step_start':
                     self.status_box.add_status(f"Starting step: {data['name']}")
-                    self.highlight_current_step(data['name'])
+                    self.highlight_current_step(data['list_index'])  # Use index instead of name
                     self.status_bar.update_progress(data['current'], data['total'])
                 
                 elif msg_type == 'step_complete':
+                    if self.current_section.lower() == 'test':
+                        # Update test details with step duration
+                        duration = f"{data.get('duration', 0):.2f}s"
+                        self.update_test_details(data['name'], duration)
                     self.status_box.add_status(f"Completed step: {data['name']}")
                     self.status_bar.update_progress(data['current'] + 1, data['total'])
                 
@@ -387,7 +419,7 @@ class TestSequencer(QMainWindow):
                 if step['enable']:
                     if current_step_count == current_step:
                         self.status_box.add_status(f"Executing step: {step['step_name']}")
-                        self.highlight_current_step(step['step_name'])
+                        self.highlight_current_step(current_step_count)
                     current_step_count += 1
 
         self.status_bar.update_progress(current_step, total_steps)
@@ -397,27 +429,36 @@ class TestSequencer(QMainWindow):
 
         QApplication.processEvents()
 
-    def highlight_current_step(self, current_step_name):
+    def highlight_current_step(self, step_index):
+        # Calculate the actual list index including headers
+        list_index = self.get_actual_list_index(step_index)
+        
         for i in range(self.sequence_list.count()):
             item = self.sequence_list.item(i)
             if isinstance(item, QListWidgetItem):
-                if item.text().startswith("---"):  # This is a section header
-                    item.setBackground(QBrush(QColor(200, 200, 255)))  # Light blue for headers
-                elif item.text().strip() == current_step_name:
-                    item.setBackground(QBrush(QColor(255, 255, 0)))  # Yellow highlight for current step
+                text = item.text().strip()
+                if text.startswith("---"):  # Section header
+                    item.setBackground(QBrush(QColor(200, 200, 255)))  # Light blue
+                elif i == list_index:  # Match the calculated index
+                    item.setBackground(QBrush(QColor(255, 255, 0)))  # Yellow
                 else:
-                    item.setBackground(QBrush(QColor(255, 255, 255)))  # White background for other steps
+                    item.setBackground(QBrush(QColor(255, 255, 255)))  # White
 
-    def get_header_count(self, step_index):
-        header_count = 0
+    def get_actual_list_index(self, step_index):
+        # Convert step index to list widget index (accounting for headers)
         steps = self.scheduler.get_steps()
         current_count = 0
+        list_index = 0
+        
         for section in steps:
-            if current_count + len(steps[section]) > step_index:
-                break
-            header_count += 1
-            current_count += len(steps[section])
-        return header_count
+            list_index += 1  # Add 1 for section header
+            for step in steps[section]:
+                if step['enable']:
+                    if current_count == step_index:
+                        return list_index
+                    current_count += 1
+                list_index += 1 if step['enable'] else 0
+        return list_index
 
     def reset_step_highlights(self):
         for i in range(self.sequence_list.count()):
@@ -439,6 +480,20 @@ class TestSequencer(QMainWindow):
                 if step['step_name'] == step_name:
                     return step['enable']
         return False
+
+    def update_test_details(self, step_name, duration):
+        # Add timestamp to differentiate between same-named steps
+        timestamp = time.strftime("%H:%M:%S")
+        display_name = f"{step_name} ({timestamp})"
+        
+        # Always add new row for each step execution
+        row = self.table_placeholder.rowCount()
+        self.table_placeholder.insertRow(row)
+        self.table_placeholder.setItem(row, 0, QTableWidgetItem(display_name))
+        self.table_placeholder.setItem(row, 1, QTableWidgetItem(duration))
+
+    def clear_test_details(self):
+        self.table_placeholder.setRowCount(0)
 
 def main():
     app = QApplication(sys.argv)

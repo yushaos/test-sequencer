@@ -18,13 +18,9 @@ class Scheduler:
         
     def load_sequence(self, file_path):
         try:
-            with open(file_path, 'r') as f:
+            with open(file_path) as f:
                 self.steps = json.load(f)
-                
-            # Store the sequence path for later use
-            self.sequence_path = file_path
-            self.previous_sequences.add_sequence(file_path)
-            
+            # No section name validation needed - accept any section names
             return True
         except Exception as e:
             raise Exception(f"Failed to load sequence: {str(e)}")
