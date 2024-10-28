@@ -1,0 +1,59 @@
+-write a project in python that will be a test sequencer GUI for hardware test engineers in lab. 
+-the outline GUI is in this picture "thumbnail_test sequencer concept drawing.png" in same folder. make it like that picure. 
+
+here is explanation on what each button do:
+-previous sequence: the last 10 sequences was run. everytime a sequence is run, write to the text file top, on the sequence file was run. 
+	-text file only keep 10 files total. 
+	-text file for previous sequence are located in a text file in same directory folder "previous sequence", call "previous sequences.txt", if text file dont' exist. create new one. 
+
+-load sequence: will open up a windows explorer, default same directory, wait for user to select the sequence file. filter by .csv extention. 
+	-when user click on the "load sequence" button:
+	-program will load a user specified config csv file. 
+	-config file will have following format:
+		-column header order: section, step name, step location, config location, enable, argument
+		-first row is header, first column is header as well, have: setup, during, post. 
+		-start the 2nd row and 2nd column, each value is what program trying to load.
+		-section have three value that indicate to user which section they are on during sequence:setup, during, post. 
+		-step name, name of the step, show on the GUI
+		-step location, the program path specify here. sequencer program will execute the module code. 
+		-config location, for each step location program to be run, use this configuration for the step function to read as config file. 
+		-enable, if this value is "yes" or True", then do run this step. if no or false, skip this step. 
+		-argument, if this column is populated pass in as the argument when running the on in step location
+	-all config file match will be case insensitive. 
+	-ignore empty line. don't throw a error, just skip over. 
+	-program will display the two columns, section and step name on the GUI, if only enable is true. 
+
+-run, this button will run the sequence loaded. this button should be disabled if load sequence is not populated. 
+-when user click on the run button: 
+	-during the running of the config file, when each step is executed, GUI will highlight which step it is currently on. 
+	-GUI will have a timer display from the master trigger (start of timer), in the first step of "during" executed. 
+	-GUI will also have a time until finish timer. this is calculated from "master trigger" executed, and the last "wait until" timer value is. 
+	
+-end sequence, this button is disabled by default, only enable after run is pushed. 
+	-if user click "end sequence", tester will skip the "during" step, and start running "post" steps
+
+-there will be status section, display all the status messages
+-there will be error section, dispaly any errors. 
+-there will not no pop up windows allowed in this GUI, everything has to display on the GUI. 
+-if user selected run without load a config. sequencer will run the last sequence file. 
+
+-sequence will be loaded into three main sections:
+	-setup,
+	-during,
+	-post, 
+	-during run if user click the button, the sequencer immediately jumps to the first step of "post", and start executing post test steps. 		
+	-during the sequence run, any step that throws error, or return a false value, the sequencer will stop continue executing steps. 
+	-there will be a section that will display the step name and step location from the config file. 
+		
+-after the sequence is finished running:
+	-continue execute step location one by one until there is no more rows populated. then show message on GUI sequence is complete. 
+-sequencer will use the 3 section in the config file to set up the main loop accordingly. 
+	-execute steps in setup section. 
+	-in during section, run each step. 
+		-this section need to use accurate timer from ni 6674T time sync card from the NI hardware. 
+		-for "wait until" step location, using the value from "argument" section. wait this step, and don't move to next step until time have reached. 
+	-then execute steps in post section. 
+-sequencer should have a separate file for scheduler, module will handle from reading the config file, all the timing specific channels or modules or signals. 
+line them up per their scheduled sequence time, and during the main loop "during", it will have clear idea on what happens at what time, and execute it when timer has reached. 
+	
+

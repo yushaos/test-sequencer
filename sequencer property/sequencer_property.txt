@@ -1,0 +1,4 @@
+DEMO_SEQUENCER_PATH=C:\Users\yusha\Desktop\test sequencer\demo sequencer
+RESULT_TDMS_PATH=C:\Users\yusha\Desktop\test sequencer\result TDMS
+PREVIOUS_SEQUENCES_PATH=C:\Users\yusha\Desktop\test sequencer\previous sequences
+RESULT_FILES_TRACKING=C:\Users\yusha\Desktop\test sequencer\sequencer property\result files.txt
