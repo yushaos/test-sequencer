@@ -1,0 +1,9 @@
+i want to create a TDMS viewer, that views large TDMS files. @TDMS viewer high level drawing.png this is a high level drawing I did on how I want to viewer to look like and all its features. write the code in python.
+-GUI should be full screen when launch. 
+-user can click on folder icon to open up explorer to select a TDMS file, or if user drag and drop to the file location box, that will also load the TDMS file. 
+-signal names section will display all the tdms file group and channel names. collaped by default, but user can click to open each group. 
+-the graph will show the waveform of the TDMS file. 
+-table tab, if user click on, will display the selected channels x, y pair table values. 
+-legend box will display graph legends info. 
+-channel properties box will display selected channel property information. 
+-bottom panel is common graphing tools user can select. zoom in, zoom out, reset zoom, cursor on/off indicator button. 

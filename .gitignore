@@ -8,6 +8,7 @@ venv/
 
 # TDMS generated files
 *.tdms
+*.tdms_index
 
 # Environment variables
 .env
