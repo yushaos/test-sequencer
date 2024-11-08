@@ -13,17 +13,18 @@ class WorkerSignals(QObject):
     finished = pyqtSignal(str, object, object, str)  # signal_key, plot_data, time_data, color
 
 class PlotWorker(QRunnable):
-    def __init__(self, signal_key, channel, color):
+    def __init__(self, signal_key, value_channel, time_channel, color):
         super().__init__()
         self.signal_key = signal_key
-        self.channel = channel
+        self.value_channel = value_channel
+        self.time_channel = time_channel
         self.color = color
         self.signals = WorkerSignals()
 
     def run(self):
-        data = self.channel[:]
-        time = np.arange(len(data))
-        self.signals.finished.emit(self.signal_key, data, time, self.color)
+        y_data = self.value_channel[:]
+        x_data = self.time_channel[:]
+        self.signals.finished.emit(self.signal_key, y_data, x_data, self.color)
 
 class TDMSViewer(QMainWindow):
     def __init__(self):
@@ -143,6 +144,17 @@ class TDMSViewer(QMainWindow):
         
         self.threadpool = QThreadPool()
         self.plot_queue = []
+        
+        self.current_selected_signal = None
+
+        # In __init__, after creating table_widget:
+        self.table_widget.setHorizontalScrollMode(QTableWidget.ScrollMode.ScrollPerPixel)
+        self.table_widget.horizontalHeader().setStretchLastSection(False)
+        self.table_widget.setShowGrid(True)
+        self.table_widget.setAlternatingRowColors(True)
+
+        # Add tab changed connection
+        self.tabs.currentChanged.connect(self.on_tab_changed)
 
     def dragEnterEvent(self, event: QDragEnterEvent):
         if event.mimeData().hasUrls():
@@ -175,14 +187,18 @@ class TDMSViewer(QMainWindow):
             group_item = QTreeWidgetItem([group.name])
             self.signal_tree.addTopLevelItem(group_item)
             for channel in group.channels():
-                channel_item = QTreeWidgetItem([channel.name])
-                group_item.addChild(channel_item)
+                # Skip time channels and only show value channels
+                if not channel.name.lower().endswith('_time'):
+                    channel_item = QTreeWidgetItem([channel.name])
+                    group_item.addChild(channel_item)
 
     def on_signal_selected(self, item, column):
         if item.parent():  # It's a channel
             group_name = item.parent().text(0)
             channel_name = item.text(0)
             signal_key = f"{group_name}/{channel_name}"
+            
+            self.current_selected_signal = (group_name, channel_name)
             
             if signal_key in self.current_plots:
                 # Unplot if already plotted
@@ -197,11 +213,27 @@ class TDMSViewer(QMainWindow):
             else:
                 # Plot if not already plotted
                 self.plot_channel(group_name, channel_name)
-                self.update_properties(group_name, channel_name)
-                self.update_table(group_name, channel_name)
+                
+            # Update properties regardless of plot status
+            self.update_properties(group_name, channel_name)
+            self.update_table(group_name, channel_name)
 
     def plot_channel(self, group_name, channel_name):
-        channel = self.current_tdms[group_name][channel_name]
+        # Get both value and time channels
+        value_channel = self.current_tdms[group_name][channel_name]
+        time_channel_name = f"{channel_name}_Time"
+        
+        # Try case-insensitive match for time channel
+        time_channel = None
+        for ch in self.current_tdms[group_name].channels():
+            if ch.name.lower() == time_channel_name.lower():
+                time_channel = ch
+                break
+        
+        if not time_channel:
+            print(f"Warning: No time channel found for {channel_name}")
+            return
+        
         signal_key = f"{group_name}/{channel_name}"
         
         if signal_key not in self.current_plots:
@@ -221,14 +253,13 @@ class TDMSViewer(QMainWindow):
             
             color = self.colors[signal_position % len(self.colors)]
             
-            # Create worker for async plotting
-            worker = PlotWorker(signal_key, channel, color)
+            # Modified worker to pass both channels
+            worker = PlotWorker(signal_key, value_channel, time_channel, color)
             worker.signals.finished.connect(self.plot_finished)
             
-            # Start the worker
             self.threadpool.start(worker)
             
-            # Add placeholder to legend
+            # Add to legend as before...
             legend_item = QTreeWidgetItem(self.legend_list)
             legend_item.setText(0, signal_key)
             legend_item.setText(1, color.capitalize())
@@ -240,22 +271,93 @@ class TDMSViewer(QMainWindow):
             pen = pg.mkPen(color=color, width=2)
             plot = self.graph_widget.plot(time_data, plot_data, pen=pen)
             self.current_plots[signal_key] = plot
+            
+            # Update properties for the newly plotted signal
+            group_name, channel_name = signal_key.split('/')
+            self.current_selected_signal = (group_name, channel_name)
+            self.update_properties(group_name, channel_name)
+            
+            # Update table if we're on the table tab
+            if self.tabs.currentIndex() == 1:
+                self.update_table(None, None)
 
     def update_properties(self, group_name, channel_name):
         self.properties_widget.clear()
         channel = self.current_tdms[group_name][channel_name]
+        
+        # Add signal name as first item
+        signal_name = QTreeWidgetItem(self.properties_widget, [f"Signal: {group_name}/{channel_name}"])
+        signal_name.setBackground(0, pg.mkColor(200, 220, 255))
+        
+        # Add properties
+        props_item = QTreeWidgetItem(self.properties_widget, ["Properties:"])
         for prop, value in channel.properties.items():
-            QTreeWidgetItem(self.properties_widget, [f"{prop}: {value}"])
+            QTreeWidgetItem(props_item, [f"{prop}: {value}"])
+        
+        # Expand all items
+        self.properties_widget.expandAll()
 
     def update_table(self, group_name, channel_name):
-        channel = self.current_tdms[group_name][channel_name]
-        data = channel[:]
-        time = np.arange(len(data))
+        # Clear existing table
+        self.table_widget.clear()
         
-        self.table_widget.setRowCount(len(data))
-        for i, (t, y) in enumerate(zip(time, data)):
-            self.table_widget.setItem(i, 0, QTableWidgetItem(str(t)))
-            self.table_widget.setItem(i, 1, QTableWidgetItem(str(y)))
+        # If no plots exist, return
+        if not self.current_plots:
+            return
+        
+        # Calculate total columns needed (2 columns per signal)
+        total_columns = len(self.current_plots) * 2
+        self.table_widget.setColumnCount(total_columns)
+        
+        # Hide row numbers
+        self.table_widget.verticalHeader().setVisible(False)
+        
+        # Enable horizontal scrollbar
+        self.table_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        
+        # Set column headers and widths
+        column_index = 0
+        max_rows = 0
+        data_pairs = []
+        
+        # Collect data from all plotted signals
+        for signal_key in self.current_plots.keys():
+            group, channel = signal_key.split('/')
+            value_channel = self.current_tdms[group][channel]
+            
+            # Find corresponding time channel
+            time_channel = None
+            time_channel_name = f"{channel}_Time"
+            for ch in self.current_tdms[group].channels():
+                if ch.name.lower() == time_channel_name.lower():
+                    time_channel = ch
+                    break
+            
+            if time_channel:
+                x_data = time_channel[:]
+                y_data = value_channel[:]
+                data_pairs.append((x_data, y_data, channel))
+                max_rows = max(max_rows, len(y_data))
+        
+        # Set up headers and data
+        headers = []
+        for _, _, channel in data_pairs:
+            headers.extend([f"{channel} (X)", f"{channel} (Y)"])
+        self.table_widget.setHorizontalHeaderLabels(headers)
+        
+        # Set column widths
+        for col in range(total_columns):
+            self.table_widget.setColumnWidth(col, 150)  # Set width to 150 pixels
+        
+        # Fill data
+        self.table_widget.setRowCount(max_rows)
+        for row in range(max_rows):
+            for col, (x_data, y_data, _) in enumerate(data_pairs):
+                if row < len(x_data):
+                    x_item = QTableWidgetItem(f"{x_data[row]:.6f}")
+                    y_item = QTableWidgetItem(f"{y_data[row]:.6f}")
+                    self.table_widget.setItem(row, col*2, x_item)
+                    self.table_widget.setItem(row, col*2+1, y_item)
 
     def zoom_in(self):
         self.graph_widget.getViewBox().scaleBy((0.5, 0.5))
@@ -269,6 +371,11 @@ class TDMSViewer(QMainWindow):
     def toggle_cursor(self):
         # Implementation for cursor functionality
         pass
+
+    def on_tab_changed(self, index):
+        # Update table when switching to table tab
+        if index == 1:  # Table tab
+            self.update_table(None, None)  # Pass None to indicate we just want to refresh current plots
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
