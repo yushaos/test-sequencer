@@ -962,7 +962,7 @@ class TDMSViewer(QMainWindow):
                 self.load_cached_data_chunk(start_row, 0)
 
     def select_signal_range(self, first_item, last_item):
-        """Select all signals between first_item and last_item"""
+        """Select all signals between first_item and last_item, regardless of direction"""
         if not first_item.parent() or not last_item.parent():
             return
             
@@ -972,48 +972,40 @@ class TDMSViewer(QMainWindow):
             self.current_plots.clear()
             self.legend_list.clear()
             self.selection_order = 0
-            self.signal_tree.clearSelection()  # Clear existing selections
+            self.signal_tree.clearSelection()
             
-        # Get all items between first and last
-        all_items = []
-        found_first = False
-        found_last = False
-        
-        def collect_items(root):
-            nonlocal found_first, found_last, all_items
+        # Get all items in the tree
+        all_tree_items = []
+        def collect_all_items(root):
             for i in range(root.childCount()):
                 group = root.child(i)
                 for j in range(group.childCount()):
                     item = group.child(j)
-                    if item == first_item:
-                        found_first = True
-                    if found_first and not found_last:
-                        all_items.append(item)
-                        item.setSelected(True)  # Highlight the item
-                    if item == last_item:
-                        found_last = True
-                        return
+                    all_tree_items.append(item)
                     
-        # Collect items in both directions
-        collect_items(self.signal_tree.invisibleRootItem())
-        if not found_first or not found_last:
-            all_items = []
-            found_first = False
-            found_last = False
-            all_items.append(last_item)  # Include last item first
-            last_item.setSelected(True)  # Highlight the last item
-            collect_items(self.signal_tree.invisibleRootItem())
+        collect_all_items(self.signal_tree.invisibleRootItem())
+        
+        # Find indices of first and last items
+        first_idx = all_tree_items.index(first_item)
+        last_idx = all_tree_items.index(last_item)
+        
+        # Determine range based on which index is smaller
+        start_idx = min(first_idx, last_idx)
+        end_idx = max(first_idx, last_idx)
+        
+        # Select and plot all items in range
+        for idx in range(start_idx, end_idx + 1):
+            item = all_tree_items[idx]
+            item.setSelected(True)
             
-        # Plot all collected items
-        for item in all_items:
             group_name = item.parent().text(0)
             channel_name = item.text(0)
             signal_key = f"{group_name}/{channel_name}"
             
             if signal_key not in self.current_plots:
                 self.plot_channel(group_name, channel_name)
-                
-        # Update properties for the last selected item
+        
+        # Update properties for the last clicked item
         self.current_selected_signal = (last_item.parent().text(0), last_item.text(0))
         self.update_properties(*self.current_selected_signal)
         
