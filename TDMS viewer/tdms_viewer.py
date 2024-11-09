@@ -293,6 +293,11 @@ class TDMSViewer(QMainWindow):
         self.table_progress.hide()
         center_layout.insertWidget(1, self.table_progress)  # Insert after file location
 
+        # Track shift selection
+        self.shift_pressed = False
+        self.first_selected_item = None
+        self.signal_tree.installEventFilter(self)
+
     def dragEnterEvent(self, event: QDragEnterEvent):
         if event.mimeData().hasUrls():
             event.accept()
@@ -332,7 +337,14 @@ class TDMSViewer(QMainWindow):
     def on_signal_selected(self, item, column):
         if not item.parent():  # Skip if it's a group
             return
-        
+            
+        if self.shift_pressed and self.first_selected_item:
+            self.select_signal_range(self.first_selected_item, item)
+            return
+            
+        if not (self.ctrl_pressed or self.shift_pressed):
+            self.first_selected_item = item
+            
         group_name = item.parent().text(0)
         channel_name = item.text(0)
         signal_key = f"{group_name}/{channel_name}"
@@ -729,13 +741,29 @@ class TDMSViewer(QMainWindow):
 
                     self.signal_tree.setSelectionMode(QTreeWidget.SelectionMode.MultiSelection)
 
+                elif event.key() == Qt.Key.Key_Shift:
+
+                    self.shift_pressed = True
+
+                    self.signal_tree.setSelectionMode(QTreeWidget.SelectionMode.MultiSelection)
+
             elif event.type() == event.Type.KeyRelease:
 
                 if event.key() == Qt.Key.Key_Control:
 
                     self.ctrl_pressed = False
 
-                    self.signal_tree.setSelectionMode(QTreeWidget.SelectionMode.SingleSelection)
+                    if not self.shift_pressed:
+
+                        self.signal_tree.setSelectionMode(QTreeWidget.SelectionMode.SingleSelection)
+
+                elif event.key() == Qt.Key.Key_Shift:
+
+                    self.shift_pressed = False
+
+                    if not self.ctrl_pressed:
+
+                        self.signal_tree.setSelectionMode(QTreeWidget.SelectionMode.SingleSelection)
 
         return super().eventFilter(obj, event)
 
@@ -926,6 +954,66 @@ class TDMSViewer(QMainWindow):
             if first_visible_row is not None and last_visible_row is not None:
                 start_row = max(0, first_visible_row - 500)
                 self.load_cached_data_chunk(start_row, 0)
+
+    def select_signal_range(self, first_item, last_item):
+        """Select all signals between first_item and last_item"""
+        if not first_item.parent() or not last_item.parent():
+            return
+            
+        # Clear existing plots if ctrl isn't pressed
+        if not self.ctrl_pressed:
+            self.graph_widget.clear()
+            self.current_plots.clear()
+            self.legend_list.clear()
+            self.selection_order = 0
+            self.signal_tree.clearSelection()  # Clear existing selections
+            
+        # Get all items between first and last
+        all_items = []
+        found_first = False
+        found_last = False
+        
+        def collect_items(root):
+            nonlocal found_first, found_last, all_items
+            for i in range(root.childCount()):
+                group = root.child(i)
+                for j in range(group.childCount()):
+                    item = group.child(j)
+                    if item == first_item:
+                        found_first = True
+                    if found_first and not found_last:
+                        all_items.append(item)
+                        item.setSelected(True)  # Highlight the item
+                    if item == last_item:
+                        found_last = True
+                        return
+                    
+        # Collect items in both directions
+        collect_items(self.signal_tree.invisibleRootItem())
+        if not found_first or not found_last:
+            all_items = []
+            found_first = False
+            found_last = False
+            all_items.append(last_item)  # Include last item first
+            last_item.setSelected(True)  # Highlight the last item
+            collect_items(self.signal_tree.invisibleRootItem())
+            
+        # Plot all collected items
+        for item in all_items:
+            group_name = item.parent().text(0)
+            channel_name = item.text(0)
+            signal_key = f"{group_name}/{channel_name}"
+            
+            if signal_key not in self.current_plots:
+                self.plot_channel(group_name, channel_name)
+                
+        # Update properties for the last selected item
+        self.current_selected_signal = (last_item.parent().text(0), last_item.text(0))
+        self.update_properties(*self.current_selected_signal)
+        
+        # Update table
+        self.table_cache.plot_keys = set()
+        self.update_table(None, None)
 
 
 
