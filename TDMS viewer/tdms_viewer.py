@@ -404,13 +404,17 @@ class TDMSViewer(QMainWindow):
 
         toolbar_layout = QHBoxLayout(toolbar)
 
+        
+
+        # Left side buttons
+
         zoom_in_btn = QPushButton("🔍+ Zoom In")
 
         zoom_out_btn = QPushButton("🔍- Zoom Out")
 
         reset_btn = QPushButton("↺ Reset")
 
-        self.cursor_btn = QPushButton("Cursor")  # Changed from "👆 Cursor On/Off"
+        self.cursor_btn = QPushButton("Cursor")
 
         self.cursor_btn.setCheckable(True)
 
@@ -428,37 +432,79 @@ class TDMSViewer(QMainWindow):
 
         """)
 
-        self.cursor_btn.clicked.connect(self.toggle_cursor)
+        
 
-        self.zoom_btn = QPushButton("🔍 Zoom")  # Changed from "🔍 X-Zoom" to "🔍 Zoom"
+        # Manual range inputs
 
-        self.zoom_btn.setCheckable(True)
+        range_widget = QWidget()
 
-        self.zoom_btn.setChecked(False)  # Start with pan mode (zoom off)
+        range_layout = QHBoxLayout(range_widget)
+
+        range_layout.setSpacing(5)
 
         
 
-        # Style for active/inactive state
+        # X-axis range
 
-        self.zoom_btn.setStyleSheet("""
+        range_layout.addWidget(QLabel("X:"))
 
-            QPushButton:checked {
+        self.x_min_input = QLineEdit()
 
-                background-color: #ADD8E6;
+        self.x_max_input = QLineEdit()
 
-                border: 1px solid #0078D7;
+        self.x_min_input.setPlaceholderText("min")
 
-            }
+        self.x_max_input.setPlaceholderText("max")
 
-        """)
+        self.x_min_input.setFixedWidth(100)
+
+        self.x_max_input.setFixedWidth(100)
+
+        range_layout.addWidget(self.x_min_input)
+
+        range_layout.addWidget(self.x_max_input)
 
         
 
-        zoom_in_btn.clicked.connect(self.zoom_in)
+        # Y-axis range
 
-        zoom_out_btn.clicked.connect(self.zoom_out)
+        range_layout.addWidget(QLabel("Y:"))
 
-        reset_btn.clicked.connect(self.reset_zoom)
+        self.y_min_input = QLineEdit()
+
+        self.y_max_input = QLineEdit()
+
+        self.y_min_input.setPlaceholderText("min")
+
+        self.y_max_input.setPlaceholderText("max")
+
+        self.y_min_input.setFixedWidth(100)
+
+        self.y_max_input.setFixedWidth(100)
+
+        range_layout.addWidget(self.y_min_input)
+
+        range_layout.addWidget(self.y_max_input)
+
+        
+
+        # Add Apply button
+
+        apply_range_btn = QPushButton("Apply")
+
+        apply_range_btn.clicked.connect(self.apply_manual_range)
+
+        range_layout.addWidget(apply_range_btn)
+
+        
+
+        # Connect to viewbox range changed signal to update input boxes
+
+        self.graph_widget.getPlotItem().getViewBox().sigRangeChanged.connect(self.on_view_range_changed)
+
+        
+
+        # Add all widgets to toolbar
 
         toolbar_layout.addWidget(zoom_in_btn)
 
@@ -468,7 +514,7 @@ class TDMSViewer(QMainWindow):
 
         toolbar_layout.addWidget(self.cursor_btn)
 
-        toolbar_layout.addWidget(self.zoom_btn)  # Updated button name
+        toolbar_layout.addWidget(range_widget)
 
         toolbar_layout.addStretch()
 
@@ -708,6 +754,18 @@ class TDMSViewer(QMainWindow):
         self.cursor_last_y = None
 
         self.current_snap_plot = None  # Track currently selected plot for snapping
+
+
+
+        # Add button connections
+
+        zoom_in_btn.clicked.connect(self.zoom_in)
+
+        zoom_out_btn.clicked.connect(self.zoom_out)
+
+        reset_btn.clicked.connect(self.reset_zoom)
+
+        self.cursor_btn.clicked.connect(self.toggle_cursor)
 
 
 
@@ -1823,9 +1881,25 @@ class TDMSViewer(QMainWindow):
 
         """Zoom in on the graph"""
 
-        view_box = self.graph_widget.getViewBox()
+        view_box = self.graph_widget.getPlotItem().getViewBox()
 
-        view_box.scaleBy((0.5, 0.5))
+        # Get current ranges
+
+        x_range, y_range = view_box.viewRange()
+
+        x_center = (x_range[0] + x_range[1]) / 2
+
+        y_center = (y_range[0] + y_range[1]) / 2
+
+        x_width = (x_range[1] - x_range[0]) * 0.5
+
+        y_width = (y_range[1] - y_range[0]) * 0.5
+
+        # Set new ranges
+
+        view_box.setXRange(x_center - x_width/2, x_center + x_width/2, padding=0)
+
+        view_box.setYRange(y_center - y_width/2, y_center + y_width/2, padding=0)
 
 
 
@@ -1833,9 +1907,25 @@ class TDMSViewer(QMainWindow):
 
         """Zoom out on the graph"""
 
-        view_box = self.graph_widget.getViewBox()
+        view_box = self.graph_widget.getPlotItem().getViewBox()
 
-        view_box.scaleBy((2, 2))
+        # Get current ranges
+
+        x_range, y_range = view_box.viewRange()
+
+        x_center = (x_range[0] + x_range[1]) / 2
+
+        y_center = (y_range[0] + y_range[1]) / 2
+
+        x_width = (x_range[1] - x_range[0]) * 2
+
+        y_width = (y_range[1] - y_range[0]) * 2
+
+        # Set new ranges
+
+        view_box.setXRange(x_center - x_width/2, x_center + x_width/2, padding=0)
+
+        view_box.setYRange(y_center - y_width/2, y_center + y_width/2, padding=0)
 
 
 
@@ -1843,9 +1933,48 @@ class TDMSViewer(QMainWindow):
 
         """Reset zoom to fit all data"""
 
-        view_box = self.graph_widget.getViewBox()
+        if not self.current_plots:
 
-        view_box.autoRange()
+            return
+            
+
+        # Find the overall data range
+
+        x_min = float('inf')
+
+        x_max = float('-inf')
+
+        y_min = float('inf')
+
+        y_max = float('-inf')
+        
+
+        for plot in self.current_plots.values():
+
+            x_data, y_data = plot.getData()
+
+            if len(x_data) > 0:
+
+                x_min = min(x_min, np.min(x_data))
+
+                x_max = max(x_max, np.max(x_data))
+
+                y_min = min(y_min, np.min(y_data))
+
+                y_max = max(y_max, np.max(y_data))
+        
+
+        if x_min != float('inf'):
+
+            # Add small padding
+
+            x_padding = (x_max - x_min) * 0.02
+
+            y_padding = (y_max - y_min) * 0.02
+
+            self.graph_widget.setXRange(x_min - x_padding, x_max + x_padding, padding=0)
+
+            self.graph_widget.setYRange(y_min - y_padding, y_max + y_padding, padding=0)
 
 
 
@@ -1951,7 +2080,6 @@ class TDMSViewer(QMainWindow):
         if view_pos is None:
 
             return
-
             
 
         self.update_cursor_position(view_pos.x())
@@ -1965,7 +2093,6 @@ class TDMSViewer(QMainWindow):
         if not self.cursor_enabled or event.button() != Qt.MouseButton.LeftButton:
 
             return
-
             
 
         pos = event.scenePos()
@@ -2370,43 +2497,20 @@ class TDMSViewer(QMainWindow):
 
     def toggle_zoom(self):
 
-        """Toggle between pan mode and x-axis zoom mode"""
+        """Toggle between pan mode and zoom mode"""
 
         view_box = self.graph_widget.getPlotItem().getViewBox()
 
         is_zoom_mode = self.zoom_btn.isChecked()
-
         
 
         if is_zoom_mode:
 
-            # X-Axis Zoom Mode
+            # Enable zoom mode
 
             view_box.setMouseMode(pg.ViewBox.RectMode)
 
-            view_box.setMouseEnabled(x=True, y=False)  # Only allow x-axis zooming
-
-            
-
-            # Override the default rectangle zoom behavior
-
-            def custom_zoom_rect(view_box, rect):
-
-                # Only use the x-coordinates of the rectangle
-
-                current_range = view_box.viewRange()
-
-                view_box.setXRange(rect.left(), rect.right(), padding=0)
-
-                # Maintain current y-range
-
-                view_box.setYRange(current_range[1][0], current_range[1][1], padding=0)
-
-            
-
-            # Replace the default zoom behavior
-
-            view_box.zoomToRect = lambda rect: custom_zoom_rect(view_box, rect)
+            view_box.setMouseEnabled(x=True, y=True)  # Allow both x and y zooming
 
         else:
 
@@ -2503,6 +2607,96 @@ class TDMSViewer(QMainWindow):
         # Update cursor info
 
         self.update_cursor_info(snap_x, snap_y)
+
+
+
+    def apply_manual_range(self):
+
+        """Apply manually entered axis ranges"""
+
+        try:
+
+            # Get X range
+
+            if self.x_min_input.text() and self.x_max_input.text():
+
+                x_min = float(self.x_min_input.text())
+
+                x_max = float(self.x_max_input.text())
+
+                if x_min < x_max:
+
+                    self.graph_widget.setXRange(x_min, x_max, padding=0)
+
+            
+
+            # Get Y range
+
+            if self.y_min_input.text() and self.y_max_input.text():
+
+                y_min = float(self.y_min_input.text())
+
+                y_max = float(self.y_max_input.text())
+
+                if y_min < y_max:
+
+                    self.graph_widget.setYRange(y_min, y_max, padding=0)
+
+                
+
+        except ValueError:
+
+            # Handle invalid input silently
+
+            pass
+
+
+
+    def on_view_range_changed(self, view_box, ranges):
+
+        """Update input boxes when view range changes"""
+
+        try:
+
+            # Disable text changed signals temporarily to prevent feedback loop
+
+            self.x_min_input.blockSignals(True)
+
+            self.x_max_input.blockSignals(True)
+
+            self.y_min_input.blockSignals(True)
+
+            self.y_max_input.blockSignals(True)
+
+            
+
+            # Update X range inputs
+
+            self.x_min_input.setText(f"{ranges[0][0]:.6f}")
+
+            self.x_max_input.setText(f"{ranges[0][1]:.6f}")
+
+            
+
+            # Update Y range inputs
+
+            self.y_min_input.setText(f"{ranges[1][0]:.6f}")
+
+            self.y_max_input.setText(f"{ranges[1][1]:.6f}")
+
+            
+
+        finally:
+
+            # Re-enable signals
+
+            self.x_min_input.blockSignals(False)
+
+            self.x_max_input.blockSignals(False)
+
+            self.y_min_input.blockSignals(False)
+
+            self.y_max_input.blockSignals(False)
 
 
 
