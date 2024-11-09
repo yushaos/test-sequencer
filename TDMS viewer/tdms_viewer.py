@@ -451,6 +451,7 @@ class TDMSViewer(QMainWindow):
             self.update_snap_selector()
             if self.tabs.currentIndex() == 1:
                 self.update_table(None, None)
+            self.maintain_cursors()
     def update_plot_progress(self, progress):
         signal_key = self.current_worker.signal_key
         if signal_key in self.progress_items:
@@ -700,6 +701,7 @@ class TDMSViewer(QMainWindow):
                     'width': 2,
                     'style': Qt.PenStyle.DashLine  # dashed line
                 })
+                
                 # Create vertical and horizontal lines for cursor 1
                 self.cursor_vline = pg.InfiniteLine(angle=90, movable=True, pen=pen1)
                 self.cursor_hline = pg.InfiniteLine(angle=0, movable=True, pen=pen1)
@@ -708,18 +710,18 @@ class TDMSViewer(QMainWindow):
                 self.cursor_vline2 = pg.InfiniteLine(angle=90, movable=True, pen=pen2)
                 self.cursor_hline2 = pg.InfiniteLine(angle=0, movable=True, pen=pen2)
                 
+                # Set high z-values to keep cursors on top
+                self.cursor_vline.setZValue(1000)
+                self.cursor_hline.setZValue(1000)
+                self.cursor_vline2.setZValue(1000)
+                self.cursor_hline2.setZValue(1000)
+                
                 # Connect drag events for both vertical and horizontal lines
                 self.cursor_vline.sigPositionChanged.connect(lambda: self.on_cursor_dragged(1))
                 self.cursor_vline2.sigPositionChanged.connect(lambda: self.on_cursor_dragged(2))
                 self.cursor_hline.sigPositionChanged.connect(lambda: self.on_cursor_dragged(1))
                 self.cursor_hline2.sigPositionChanged.connect(lambda: self.on_cursor_dragged(2))
-                
-                # Add all lines to the graph
-                self.graph_widget.addItem(self.cursor_vline)
-                self.graph_widget.addItem(self.cursor_hline)
-                self.graph_widget.addItem(self.cursor_vline2)
-                self.graph_widget.addItem(self.cursor_hline2)
-                
+
             # Get current view range to position cursors
             view_range = self.graph_widget.getPlotItem().viewRange()
             x_min, x_max = view_range[0]
@@ -732,6 +734,18 @@ class TDMSViewer(QMainWindow):
             # Get y values for the cursor positions
             y1 = self.get_y_value_at_x(x1)
             y2 = self.get_y_value_at_x(x2)
+            
+            # Remove existing cursors if they're already in the plot
+            self.graph_widget.removeItem(self.cursor_vline)
+            self.graph_widget.removeItem(self.cursor_hline)
+            self.graph_widget.removeItem(self.cursor_vline2)
+            self.graph_widget.removeItem(self.cursor_hline2)
+            
+            # Add cursors to the plot
+            self.graph_widget.addItem(self.cursor_vline)
+            self.graph_widget.addItem(self.cursor_hline)
+            self.graph_widget.addItem(self.cursor_vline2)
+            self.graph_widget.addItem(self.cursor_hline2)
             
             # Set initial positions for both vertical and horizontal lines
             self.cursor_vline.setPos(x1)
@@ -1105,6 +1119,20 @@ class TDMSViewer(QMainWindow):
         
         # Update cursor info
         self.update_cursor_info()
+    def maintain_cursors(self):
+        """Ensure cursors remain visible when plots are updated"""
+        if self.cursor_enabled and self.cursor_vline:
+            # Remove and re-add cursors to maintain proper z-order
+            self.graph_widget.removeItem(self.cursor_vline)
+            self.graph_widget.removeItem(self.cursor_hline)
+            self.graph_widget.removeItem(self.cursor_vline2)
+            self.graph_widget.removeItem(self.cursor_hline2)
+            
+            # Re-add cursors with high z-value
+            self.graph_widget.addItem(self.cursor_vline)
+            self.graph_widget.addItem(self.cursor_hline)
+            self.graph_widget.addItem(self.cursor_vline2)
+            self.graph_widget.addItem(self.cursor_hline2)
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     viewer = TDMSViewer()
