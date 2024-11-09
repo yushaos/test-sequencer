@@ -1,10 +1,10 @@
 import sys
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                             QHBoxLayout, QTreeWidget, QTreeWidgetItem, QPushButton,
                             QLabel, QTabWidget, QTableWidget, QTableWidgetItem,
                             QLineEdit, QFileDialog, QGroupBox, QProgressBar, QComboBox)
-from PyQt6.QtCore import Qt, QMimeData, QRunnable, QThreadPool, pyqtSignal, QObject, QTimer, QTime, QThread
-from PyQt6.QtGui import QDragEnterEvent, QDropEvent, QPen
+from PyQt5.QtCore import Qt, QMimeData, QRunnable, QThreadPool, pyqtSignal, QObject, QTimer, QTime, QThread
+from PyQt5.QtGui import QDragEnterEvent, QDropEvent, QPen
 from nptdms import TdmsFile
 import pyqtgraph as pg
 import numpy as np
@@ -127,7 +127,7 @@ class TDMSViewer(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("TDMS Viewer")
-        self.setWindowState(Qt.WindowState.WindowMaximized)
+        self.setWindowState(Qt.WindowMaximized)
         # Main widget and layout
         main_widget = QWidget()
         self.setCentralWidget(main_widget)
@@ -141,7 +141,7 @@ class TDMSViewer(QMainWindow):
         self.signal_tree = QTreeWidget()
         self.signal_tree.setHeaderHidden(True)
         self.signal_tree.itemClicked.connect(self.on_signal_selected)
-        self.signal_tree.setSelectionMode(QTreeWidget.SelectionMode.SingleSelection)
+        self.signal_tree.setSelectionMode(QTreeWidget.SingleSelection)
         # Add this style for blue highlight
         self.signal_tree.setStyleSheet("""
             QTreeWidget::item:selected {
@@ -273,7 +273,7 @@ class TDMSViewer(QMainWindow):
         self.progress_items = {}  # Add this line to initialize progress_items
         self.current_selected_signal = None
         # In __init__, after creating table_widget:
-        self.table_widget.setHorizontalScrollMode(QTableWidget.ScrollMode.ScrollPerPixel)
+        self.table_widget.setHorizontalScrollMode(QTableWidget.ScrollPerPixel)
         self.table_widget.horizontalHeader().setStretchLastSection(False)
         self.table_widget.setShowGrid(True)
         self.table_widget.setAlternatingRowColors(True)
@@ -449,7 +449,7 @@ class TDMSViewer(QMainWindow):
             legend_item.setText(0, channel_name)
             color_box = f'<div style="background-color: {color}; width: 20px; height: 10px; border: 1px solid black;"></div>'
             legend_item.setText(1, "")
-            legend_item.setData(1, Qt.ItemDataRole.DisplayRole, "")
+            legend_item.setData(1, Qt.DisplayRole, "")
             self.legend_list.setItemWidget(legend_item, 1, QLabel(color_box))
             legend_item.setBackground(0, pg.mkColor(200, 220, 255))
             
@@ -598,22 +598,22 @@ class TDMSViewer(QMainWindow):
             self.load_cached_data_chunk(start_row, 0)
     def eventFilter(self, obj, event):
         if obj == self.signal_tree:
-            if event.type() == event.Type.KeyPress:
-                if event.key() == Qt.Key.Key_Control:
+            if event.type() == event.KeyPress:
+                if event.key() == Qt.Key_Control:
                     self.ctrl_pressed = True
-                    self.signal_tree.setSelectionMode(QTreeWidget.SelectionMode.MultiSelection)
-                elif event.key() == Qt.Key.Key_Shift:
+                    self.signal_tree.setSelectionMode(QTreeWidget.MultiSelection)
+                elif event.key() == Qt.Key_Shift:
                     self.shift_pressed = True
-                    self.signal_tree.setSelectionMode(QTreeWidget.SelectionMode.MultiSelection)
-            elif event.type() == event.Type.KeyRelease:
-                if event.key() == Qt.Key.Key_Control:
+                    self.signal_tree.setSelectionMode(QTreeWidget.MultiSelection)
+            elif event.type() == event.KeyRelease:
+                if event.key() == Qt.Key_Control:
                     self.ctrl_pressed = False
                     if not self.shift_pressed:
-                        self.signal_tree.setSelectionMode(QTreeWidget.SelectionMode.SingleSelection)
-                elif event.key() == Qt.Key.Key_Shift:
+                        self.signal_tree.setSelectionMode(QTreeWidget.SingleSelection)
+                elif event.key() == Qt.Key_Shift:
                     self.shift_pressed = False
                     if not self.ctrl_pressed:
-                        self.signal_tree.setSelectionMode(QTreeWidget.SelectionMode.SingleSelection)
+                        self.signal_tree.setSelectionMode(QTreeWidget.SingleSelection)
         return super().eventFilter(obj, event)
     def prepare_data_pairs(self, plot_keys):
         """Prepare data pairs for table loading"""
@@ -856,7 +856,7 @@ class TDMSViewer(QMainWindow):
         self.update_cursor_position(view_pos.x())
     def cursor_clicked(self, event):
         """Handle cursor click to set cursor positions"""
-        if not self.cursor_enabled or event.button() != Qt.MouseButton.LeftButton:
+        if not self.cursor_enabled or event.button() != Qt.LeftButton:
             return
         pos = event.scenePos()
         view_pos = self.graph_widget.getPlotItem().vb.mapSceneToView(pos)
