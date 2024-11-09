@@ -11,6 +11,8 @@ import numpy as np
 from collections import defaultdict
 from functools import lru_cache
 from math import ceil
+import json
+import os
 class WorkerSignals(QObject):
     finished = pyqtSignal(str, object, object, str)  # signal_key, plot_data, time_data, color
 class PlotWorkerSignals(QObject):
@@ -103,6 +105,24 @@ class SignalCache:
     def __init__(self):
         self.x_data = None
         self.y_data = None
+class SignalMapper:
+    def __init__(self):
+        self.mapping = {}
+        self.load_config()
+    
+    def load_config(self):
+        config_path = os.path.join(os.path.dirname(__file__), 'tdms_viewer_config.json')
+        try:
+            with open(config_path, 'r') as f:
+                config = json.load(f)
+                self.mapping = {item['y']: item['x'] for item in config['signal_pairs']}
+        except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
+            print(f"Warning: Could not load signal mapping config: {e}")
+            self.mapping = {}
+    
+    def get_x_signal(self, y_signal):
+        """Get the corresponding x signal for a y signal"""
+        return self.mapping.get(y_signal)
 class TDMSViewer(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -322,6 +342,8 @@ class TDMSViewer(QMainWindow):
         zoom_out_btn.clicked.connect(self.zoom_out)
         reset_btn.clicked.connect(self.reset_zoom)
         self.cursor_btn.clicked.connect(self.toggle_cursor)
+        # Add after other initializations
+        self.signal_mapper = SignalMapper()
     def dragEnterEvent(self, event: QDragEnterEvent):
         if event.mimeData().hasUrls():
             event.accept()
@@ -386,14 +408,25 @@ class TDMSViewer(QMainWindow):
         self.update_table(group_name, channel_name)
     def plot_channel(self, group_name, channel_name):
         value_channel = self.current_tdms[group_name][channel_name]
-        time_channel_name = f"{channel_name}_Time"
+        
+        # Check if there's a mapping for this channel
+        mapped_time_channel = self.signal_mapper.get_x_signal(channel_name)
         time_channel = None
         
-        # Try to find time channel
-        for ch in self.current_tdms[group_name].channels():
-            if ch.name.lower() == time_channel_name.lower():
-                time_channel = ch
-                break
+        if mapped_time_channel:
+            # Try to get the mapped time channel
+            try:
+                time_channel = self.current_tdms[group_name][mapped_time_channel]
+            except KeyError:
+                print(f"Warning: Mapped time channel {mapped_time_channel} not found")
+        
+        # Fallback to default _Time suffix if no mapping or mapping not found
+        if not time_channel:
+            time_channel_name = f"{channel_name}_Time"
+            for ch in self.current_tdms[group_name].channels():
+                if ch.name.lower() == time_channel_name.lower():
+                    time_channel = ch
+                    break
         
         signal_key = f"{group_name}/{channel_name}"
         if signal_key not in self.current_plots:
@@ -402,26 +435,21 @@ class TDMSViewer(QMainWindow):
             
             # If no time channel found, create a default x-axis
             if time_channel is None:
-                # Create a default x-axis as a range from 0 to len(value_channel)
                 time_channel = np.arange(len(value_channel))
             
             worker = PlotWorker(signal_key, value_channel, time_channel, color)
             worker.signals.chunk_ready.connect(self.plot_chunk_finished)
             worker.signals.progress.connect(self.update_plot_progress)
-            # Store worker reference to prevent premature garbage collection
             self.current_worker = worker
             self.threadpool.start(worker)
             
             # Add to legend
             legend_item = QTreeWidgetItem(self.legend_list)
-            # Extract just the channel name from signal_key
             channel_name = signal_key.split('/')[1]
             legend_item.setText(0, channel_name)
-            # Create a colored box using HTML
             color_box = f'<div style="background-color: {color}; width: 20px; height: 10px; border: 1px solid black;"></div>'
-            legend_item.setText(1, "")  # Clear text
-            legend_item.setData(1, Qt.ItemDataRole.DisplayRole, "")  # Clear display role
-            # Set HTML content for the color cell
+            legend_item.setText(1, "")
+            legend_item.setData(1, Qt.ItemDataRole.DisplayRole, "")
             self.legend_list.setItemWidget(legend_item, 1, QLabel(color_box))
             legend_item.setBackground(0, pg.mkColor(200, 220, 255))
             
