@@ -251,6 +251,7 @@ class TDMSViewer(QMainWindow):
         
         self.threadpool = QThreadPool()
         self.plot_queue = []
+        self.progress_items = {}  # Add this line to initialize progress_items
         
         self.current_selected_signal = None
 
@@ -420,13 +421,18 @@ class TDMSViewer(QMainWindow):
             
             # Add to legend
             legend_item = QTreeWidgetItem(self.legend_list)
-            legend_item.setText(0, signal_key)
-            legend_item.setText(1, color.capitalize())
+            # Extract just the channel name from signal_key
+            channel_name = signal_key.split('/')[1]
+            legend_item.setText(0, channel_name)
+            # Create a colored box using HTML
+            color_box = f'<div style="background-color: {color}; width: 20px; height: 10px; border: 1px solid black;"></div>'
+            legend_item.setText(1, "")  # Clear text
+            legend_item.setData(1, Qt.ItemDataRole.DisplayRole, "")  # Clear display role
+            # Set HTML content for the color cell
+            self.legend_list.setItemWidget(legend_item, 1, QLabel(color_box))
             legend_item.setBackground(0, pg.mkColor(200, 220, 255))
-            legend_item.setBackground(1, pg.mkColor(200, 220, 255))
-            
-            # Show progress in legend
-            self.progress_items = {}
+
+            # Add progress item
             progress_item = QTreeWidgetItem(legend_item)
             progress_item.setText(0, "Loading: 0%")
             self.progress_items[signal_key] = progress_item
