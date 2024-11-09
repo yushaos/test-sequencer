@@ -434,6 +434,14 @@ class TDMSViewer(QMainWindow):
 
         
 
+        # Add center cursor button after cursor button
+
+        self.center_cursor_btn = QPushButton("⌖ Center Cursors")
+
+        self.center_cursor_btn.clicked.connect(self.center_cursors)
+
+        
+
         # Manual range inputs
 
         range_widget = QWidget()
@@ -513,6 +521,8 @@ class TDMSViewer(QMainWindow):
         toolbar_layout.addWidget(reset_btn)
 
         toolbar_layout.addWidget(self.cursor_btn)
+
+        toolbar_layout.addWidget(self.center_cursor_btn)
 
         toolbar_layout.addWidget(range_widget)
 
@@ -749,9 +759,13 @@ class TDMSViewer(QMainWindow):
 
         self.cursor_vline = None
 
-        self.cursor_last_x = None
+        self.cursor_vline2 = None  # Second cursor
 
-        self.cursor_last_y = None
+        self.cursor_active = 1  # Track which cursor is active (1 or 2)
+
+        self.cursor_positions = [None, None]  # Store positions for both cursors
+
+        self.cursor_y_values = [None, None]  # Store y values for both cursors
 
         self.current_snap_plot = None  # Track currently selected plot for snapping
 
@@ -1987,79 +2001,160 @@ class TDMSViewer(QMainWindow):
 
         if self.cursor_enabled:
 
-            # Create vertical line cursor if it doesn't exist
+            # Create both vertical line cursors if they don't exist
 
             if not self.cursor_vline:
 
-                pen = pg.mkPen({
+                pen1 = pg.mkPen({
 
                     'color': 'r',
 
-                    'width': 1,
+                    'width': 2,  # Increased from 1 to 2
 
                     'style': Qt.PenStyle.SolidLine
 
                 })
 
-                self.cursor_vline = pg.InfiniteLine(angle=90, movable=False, pen=pen)
+                pen2 = pg.mkPen({
+
+                    'color': 'b',
+
+                    'width': 2,  # Increased from 1 to 2
+
+                    'style': Qt.PenStyle.SolidLine
+
+                })
+
+                # Set cursors to be movable
+
+                self.cursor_vline = pg.InfiniteLine(angle=90, movable=True, pen=pen1)
+
+                self.cursor_vline2 = pg.InfiniteLine(angle=90, movable=True, pen=pen2)
+                
+
+                # Connect drag events
+
+                self.cursor_vline.sigPositionChanged.connect(lambda: self.on_cursor_dragged(1))
+
+                self.cursor_vline2.sigPositionChanged.connect(lambda: self.on_cursor_dragged(2))
+                
 
                 self.graph_widget.addItem(self.cursor_vline)
 
+                self.graph_widget.addItem(self.cursor_vline2)
+
             
 
-            # Show cursor
+            # Get current view range to position cursors
+
+            view_range = self.graph_widget.getPlotItem().viewRange()
+
+            x_min, x_max = view_range[0]
+
+            
+
+            # Position cursors at 40% and 60% of the visible range
+
+            x1 = x_min + (x_max - x_min) * 0.4
+
+            x2 = x_min + (x_max - x_min) * 0.6
+
+            
+
+            # Set initial positions
+
+            self.cursor_vline.setPos(x1)
+
+            self.cursor_vline2.setPos(x2)
+
+            
+
+            # Store positions and get y values
+
+            self.cursor_positions = [x1, x2]
+
+            self.cursor_y_values = [self.get_y_value_at_x(x1), self.get_y_value_at_x(x2)]
+
+            
+
+            # Show both cursors
 
             self.cursor_vline.show()
 
-            
-
-            # Connect mouse events
-
-            self.graph_widget.scene().sigMouseMoved.connect(self.cursor_moved)
-
-            self.graph_widget.scene().sigMouseClicked.connect(self.cursor_clicked)
-
-        else:
-
-            # Hide cursor
-
-            if self.cursor_vline:
-
-                self.cursor_vline.hide()
+            self.cursor_vline2.show()
 
             
 
-            # Disconnect mouse events
+            # Update cursor info
+
+            self.update_cursor_info()
+
+            
+
+            # Disconnect mouse move events since we're using drag now
 
             try:
 
                 self.graph_widget.scene().sigMouseMoved.disconnect(self.cursor_moved)
 
-                self.graph_widget.scene().sigMouseClicked.disconnect(self.cursor_clicked)
-
             except TypeError:
-
-                # Ignore if connections don't exist
 
                 pass
 
+        else:
+
+            # Hide cursors
+
+            if self.cursor_vline:
+
+                self.cursor_vline.hide()
+
+                self.cursor_vline2.hide()
+
             
 
-            # Reset last positions
+            # Reset positions
 
-            self.cursor_last_x = None
+            self.cursor_positions = [None, None]
 
-            self.cursor_last_y = None
+            self.cursor_y_values = [None, None]
+
+            self.cursor_active = 1
+
+            
 
             # Update cursor info with default values
 
-            self.cursor_x_label.setText("X: -")
+            self.update_cursor_info()
 
-            self.cursor_y_label.setText("Y: -")
 
-            self.cursor_delta_x.setText("ΔX: -")
 
-            self.cursor_delta_y.setText("ΔY: -")
+    def on_cursor_dragged(self, cursor_num):
+
+        """Handle cursor drag events"""
+
+        cursor = self.cursor_vline if cursor_num == 1 else self.cursor_vline2
+
+        x_pos = cursor.getXPos()
+        
+
+        # Get y value at current x position
+
+        y_val = self.get_y_value_at_x(x_pos)
+        
+
+        # Update stored positions
+
+        idx = cursor_num - 1
+
+        self.cursor_positions[idx] = x_pos
+
+        self.cursor_y_values[idx] = y_val
+        
+
+        # Update cursor info
+
+        self.update_cursor_info()
 
 
 
@@ -2088,7 +2183,7 @@ class TDMSViewer(QMainWindow):
 
     def cursor_clicked(self, event):
 
-        """Handle cursor click to set reference point"""
+        """Handle cursor click to set cursor positions"""
 
         if not self.cursor_enabled or event.button() != Qt.MouseButton.LeftButton:
 
@@ -2098,22 +2193,21 @@ class TDMSViewer(QMainWindow):
         pos = event.scenePos()
 
         view_pos = self.graph_widget.getPlotItem().vb.mapSceneToView(pos)
-
         
 
-        if self.cursor_last_x is None:
+        # Update position for active cursor
 
-            self.cursor_last_x = view_pos.x()
+        idx = self.cursor_active - 1
 
-            self.cursor_last_y = self.get_y_value_at_x(view_pos.x())
+        self.cursor_positions[idx] = view_pos.x()
 
-        else:
+        self.cursor_y_values[idx] = self.get_y_value_at_x(view_pos.x())
+        
 
-            self.cursor_last_x = None
+        # Switch active cursor
 
-            self.cursor_last_y = None
-
-            
+        self.cursor_active = 2 if self.cursor_active == 1 else 1
+        
 
         self.cursor_moved(pos)
 
@@ -2161,15 +2255,15 @@ class TDMSViewer(QMainWindow):
 
 
 
-    def update_cursor_info(self, x, y):
+    def update_cursor_info(self):
 
         """Update cursor information display"""
 
-        if x is None or y is None:
+        if None in self.cursor_positions:
 
-            self.cursor_x_label.setText("X: -")
+            self.cursor_x_label.setText("X1: - | X2: -")
 
-            self.cursor_y_label.setText("Y: -")
+            self.cursor_y_label.setText("Y1: - | Y2: -")
 
             self.cursor_delta_x.setText("ΔX: -")
 
@@ -2178,26 +2272,23 @@ class TDMSViewer(QMainWindow):
             return
             
 
-        self.cursor_x_label.setText(f"X: {x:.6f}")
+        x1, x2 = self.cursor_positions
 
-        self.cursor_y_label.setText(f"Y: {y:.6f}")
+        y1, y2 = self.cursor_y_values
         
 
-        if self.cursor_last_x is not None and self.cursor_last_y is not None:
+        self.cursor_x_label.setText(f"X1: {x1:.6f} | X2: {x2:.6f}")
 
-            delta_x = x - self.cursor_last_x
+        self.cursor_y_label.setText(f"Y1: {y1:.6f} | Y2: {y2:.6f}")
+        
 
-            delta_y = y - self.cursor_last_y
+        delta_x = abs(x2 - x1)
 
-            self.cursor_delta_x.setText(f"ΔX: {delta_x:.6f}")
+        delta_y = abs(y2 - y1)
 
-            self.cursor_delta_y.setText(f"ΔY: {delta_y:.6f}")
+        self.cursor_delta_x.setText(f"ΔX: {delta_x:.6f}")
 
-        else:
-
-            self.cursor_delta_x.setText("ΔX: Click to set reference")
-
-            self.cursor_delta_y.setText("ΔY: -")
+        self.cursor_delta_y.setText(f"ΔY: {delta_y:.6f}")
 
 
 
@@ -2599,14 +2690,49 @@ class TDMSViewer(QMainWindow):
         snap_y = data[1][idx]
         
 
-        # Update cursor line position
+        # Update position for active cursor
 
-        self.cursor_vline.setPos(snap_x)
+        cursor = self.cursor_vline if self.cursor_active == 1 else self.cursor_vline2
+
+        cursor.setPos(snap_x)
         
 
-        # Update cursor info
+        # Store positions temporarily for hover preview
 
-        self.update_cursor_info(snap_x, snap_y)
+        temp_positions = list(self.cursor_positions)
+
+        temp_y_values = list(self.cursor_y_values)
+
+        temp_positions[self.cursor_active - 1] = snap_x
+
+        temp_y_values[self.cursor_active - 1] = snap_y
+        
+
+        # Update cursor info with temporary values
+
+        x1_text = f"{temp_positions[0]:.6f}" if temp_positions[0] is not None else "-"
+
+        x2_text = f"{temp_positions[1]:.6f}" if temp_positions[1] is not None else "-"
+
+        y1_text = f"{temp_y_values[0]:.6f}" if temp_y_values[0] is not None else "-"
+
+        y2_text = f"{temp_y_values[1]:.6f}" if temp_y_values[1] is not None else "-"
+        
+
+        self.cursor_x_label.setText(f"X1: {x1_text} | X2: {x2_text}")
+
+        self.cursor_y_label.setText(f"Y1: {y1_text} | Y2: {y2_text}")
+        
+
+        if all(pos is not None for pos in temp_positions):
+
+            delta_x = abs(temp_positions[1] - temp_positions[0])
+
+            delta_y = abs(temp_y_values[1] - temp_y_values[0])
+
+            self.cursor_delta_x.setText(f"ΔX: {delta_x:.6f}")
+
+            self.cursor_delta_y.setText(f"ΔY: {delta_y:.6f}")
 
 
 
@@ -2697,6 +2823,53 @@ class TDMSViewer(QMainWindow):
             self.y_min_input.blockSignals(False)
 
             self.y_max_input.blockSignals(False)
+
+
+
+    def center_cursors(self):
+
+        """Center both cursors in the current view"""
+
+        if not self.cursor_enabled or not self.cursor_vline:
+
+            return
+            
+
+        # Get current view range
+
+        view_range = self.graph_widget.getPlotItem().viewRange()
+
+        x_min, x_max = view_range[0]
+
+        x_center = (x_min + x_max) / 2
+
+        x_range = x_max - x_min
+        
+
+        # Position cursors at 45% and 55% of the visible range
+
+        x1 = x_center - (x_range * 0.05)  # 5% left of center
+
+        x2 = x_center + (x_range * 0.05)  # 5% right of center
+        
+
+        # Set cursor positions
+
+        self.cursor_vline.setPos(x1)
+
+        self.cursor_vline2.setPos(x2)
+        
+
+        # Update stored positions and y values
+
+        self.cursor_positions = [x1, x2]
+
+        self.cursor_y_values = [self.get_y_value_at_x(x1), self.get_y_value_at_x(x2)]
+        
+
+        # Update cursor info
+
+        self.update_cursor_info()
 
 
 
