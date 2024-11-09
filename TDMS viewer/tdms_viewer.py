@@ -184,6 +184,11 @@ class TDMSViewer(QMainWindow):
         self.graph_widget.setBackground('w')
         self.graph_widget.showGrid(x=True, y=True)
         
+        # Enable mouse panning by default
+        self.graph_widget.getPlotItem().getViewBox().setMouseMode(pg.ViewBox.PanMode)
+        # Only allow x-axis panning
+        self.graph_widget.getPlotItem().getViewBox().setMouseEnabled(x=True, y=False)
+        
         # Table tab
         self.table_widget = QTableWidget()
         self.table_widget.setColumnCount(2)
@@ -200,16 +205,29 @@ class TDMSViewer(QMainWindow):
         zoom_out_btn = QPushButton("🔍- Zoom Out")
         reset_btn = QPushButton("↺ Reset")
         cursor_btn = QPushButton("👆 Cursor On/Off")
+        self.zoom_btn = QPushButton("🔍 Zoom")  # Changed from "🔍 X-Zoom" to "🔍 Zoom"
+        self.zoom_btn.setCheckable(True)
+        self.zoom_btn.setChecked(False)  # Start with pan mode (zoom off)
+        
+        # Style for active/inactive state
+        self.zoom_btn.setStyleSheet("""
+            QPushButton:checked {
+                background-color: #ADD8E6;
+                border: 1px solid #0078D7;
+            }
+        """)
         
         zoom_in_btn.clicked.connect(self.zoom_in)
         zoom_out_btn.clicked.connect(self.zoom_out)
         reset_btn.clicked.connect(self.reset_zoom)
         cursor_btn.clicked.connect(self.toggle_cursor)
+        self.zoom_btn.clicked.connect(self.toggle_zoom)  # Renamed connection
         
         toolbar_layout.addWidget(zoom_in_btn)
         toolbar_layout.addWidget(zoom_out_btn)
         toolbar_layout.addWidget(reset_btn)
         toolbar_layout.addWidget(cursor_btn)
+        toolbar_layout.addWidget(self.zoom_btn)  # Updated button name
         toolbar_layout.addStretch()
         
         center_layout.addWidget(toolbar)
@@ -1012,6 +1030,31 @@ class TDMSViewer(QMainWindow):
         # Update table
         self.table_cache.plot_keys = set()
         self.update_table(None, None)
+
+    def toggle_zoom(self):
+        """Toggle between pan mode and x-axis zoom mode"""
+        view_box = self.graph_widget.getPlotItem().getViewBox()
+        is_zoom_mode = self.zoom_btn.isChecked()
+        
+        if is_zoom_mode:
+            # X-Axis Zoom Mode
+            view_box.setMouseMode(pg.ViewBox.RectMode)
+            view_box.setMouseEnabled(x=True, y=False)  # Only allow x-axis zooming
+            
+            # Override the default rectangle zoom behavior
+            def custom_zoom_rect(view_box, rect):
+                # Only use the x-coordinates of the rectangle
+                current_range = view_box.viewRange()
+                view_box.setXRange(rect.left(), rect.right(), padding=0)
+                # Maintain current y-range
+                view_box.setYRange(current_range[1][0], current_range[1][1], padding=0)
+            
+            # Replace the default zoom behavior
+            view_box.zoomToRect = lambda rect: custom_zoom_rect(view_box, rect)
+        else:
+            # Pan Mode
+            view_box.setMouseMode(pg.ViewBox.PanMode)
+            view_box.setMouseEnabled(x=True, y=False)  # Only allow x-axis panning
 
 
 
