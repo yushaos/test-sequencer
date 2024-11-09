@@ -388,23 +388,30 @@ class TDMSViewer(QMainWindow):
         value_channel = self.current_tdms[group_name][channel_name]
         time_channel_name = f"{channel_name}_Time"
         time_channel = None
+        
+        # Try to find time channel
         for ch in self.current_tdms[group_name].channels():
             if ch.name.lower() == time_channel_name.lower():
                 time_channel = ch
                 break
-        if not time_channel:
-            print(f"Warning: No time channel found for {channel_name}")
-            return
+        
         signal_key = f"{group_name}/{channel_name}"
         if signal_key not in self.current_plots:
             color = self.colors[self.selection_order % len(self.colors)]
             self.selection_order += 1
+            
+            # If no time channel found, create a default x-axis
+            if time_channel is None:
+                # Create a default x-axis as a range from 0 to len(value_channel)
+                time_channel = np.arange(len(value_channel))
+            
             worker = PlotWorker(signal_key, value_channel, time_channel, color)
             worker.signals.chunk_ready.connect(self.plot_chunk_finished)
             worker.signals.progress.connect(self.update_plot_progress)
             # Store worker reference to prevent premature garbage collection
             self.current_worker = worker
             self.threadpool.start(worker)
+            
             # Add to legend
             legend_item = QTreeWidgetItem(self.legend_list)
             # Extract just the channel name from signal_key
@@ -417,6 +424,7 @@ class TDMSViewer(QMainWindow):
             # Set HTML content for the color cell
             self.legend_list.setItemWidget(legend_item, 1, QLabel(color_box))
             legend_item.setBackground(0, pg.mkColor(200, 220, 255))
+            
             # Add progress item
             progress_item = QTreeWidgetItem(legend_item)
             progress_item.setText(0, "Loading: 0%")
