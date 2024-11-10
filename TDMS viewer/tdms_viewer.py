@@ -728,13 +728,13 @@ class TDMSViewer(QMainWindow):
             # Create both vertical and horizontal line cursors if they don't exist
             if not self.cursor_vline:
                 pen1 = pg.mkPen({
-                    'color': 'k',  # black color
-                    'width': 2,
+                    'color': '#FF69B4',  # hot pink color
+                    'width': 4,  # increased line thickness
                     'style': Qt.PenStyle.DashLine  # dashed line
                 })
                 pen2 = pg.mkPen({
-                    'color': '#006400',  # dark green color
-                    'width': 2,
+                    'color': '#FFA500',  # orange color
+                    'width': 4,  # increased line thickness
                     'style': Qt.PenStyle.DashLine  # dashed line
                 })
                 

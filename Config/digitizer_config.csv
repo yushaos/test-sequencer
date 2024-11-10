@@ -1,0 +1,165 @@
+engine config,enabled,address,Reference Clock,Sample Clock Active Edge ,Trig. Type,Trig. Source,Trig. Slope,Sample Mode,Sample Rate (samples/s),,,,
+,yes,PXIe-4300_01,PXIe_Clk100,Rising,Start-Digital Edge,PXI_Star,Rising,Continuous,250000,,,,
+channel config,Address,SW Alias,Description,Enabled,Max Voltage (V),y-offset,ymulti,Data Reduction Method,Aperture Tolerance (V),Aperture Burst,Aperture Min Sample Rate,Averaging Points,Decimation Interval
+,0,DISCRETE_A_VMON,DISCRETE_A_VMON,Yes,60,0,1,Aperture,3,10,1000,1000,1000
+,1,DISCRETE_B_VMON,DISCRETE_B_VMON,Yes,60,0,1,Aperture,3,10,1000,1000,1000
+,2,DISCRETE_C_VMON,DISCRETE_C_VMON,Yes,60,0,1,Aperture,3,10,1000,1000,1000
+,3,DISCRETE_D_VMON,DISCRETE_D_VMON,Yes,60,0,1,Aperture,3,10,1000,1000,1000
+,4,FUNC_PWR1_VMON,FUNC_PWR1_VMON,Yes,60,0,1,Aperture,3,10,1000,1000,1000
+,5,FUNC_PWR2_VMON,FUNC_PWR2_VMON,Yes,60,0,1,Aperture,3,10,1000,1000,1000
+,6,TMTO_VMON,TMTO_VMON,Yes,60,0,1,Aperture,3,10,1000,1000,1000
+,7,A00_VMON,A00_VMON,Yes,60,0,1,Aperture,3,10,1000,1000,1000
+engine config,enabled,address,Reference Clock,Sample Clock Active Edge ,Trig. Type,Trig. Source,Trig. Slope,Sample Mode,Sample Rate (samples/s),,,,
+,yes,PXIe-4300_02,PXIe_Clk100,Rising,Start-Digital Edge,PXI_Star,Rising,Continuous,250000,,,,
+channel config,Address,SW Alias,Description,Enabled,Max Voltage (V),y-offset,ymulti,Data Reduction Method,Aperture Tolerance (V),Aperture Burst,Aperture Min Sample Rate,Averaging Points,Decimation Interval
+,0,A01_VMON,A01_VMON,Yes,60,0,1,Aperture,3,10,1000,1000,1000
+,1,A02_VMON,A02_VMON,Yes,30,0,1,Aperture,3,10,1000,1000,1000
+,2,A03_VMON,A03_VMON,Yes,60,0,1,Aperture,3,10,1000,1000,1000
+,3,A3_VMON_DIGITIZER,A3_VMON_DIGITIZER,Yes,30,0,1,Aperture,3,100,1000,1000,1000
+,4,A1_VMON,A1_VMON,Yes,30,0,1,Aperture,3,50,1000,1000,1000
+,5,EXT_PWR_EN_VMON,EXT_PWR_EN_VMON,Yes,60,0,1,Aperture,3,5,1000,1000,1000
+,6,EXT_TM_PWR_VMON,EXT_TM_PWR_VMON,Yes,60,0,1,Aperture,3,5,1000,1000,1000
+,7,BATT_VOLTAGE_VMON,BATT_VOLTAGE_VMON,Yes,60,0,1,Aperture,3,5,1000,1000,1000
+engine config,enabled,address,Reference Clock,Sample Clock Active Edge ,Trig. Type,Trig. Source,Trig. Slope,Sample Mode,Sample Rate (samples/s),,,,
+,yes,PXIe-4300_03,PXIe_Clk100,Rising,Start-Digital Edge,PXI_Star,Rising,Continuous,250000,,,,
+channel config,Address,SW Alias,Description,Enabled,Max Voltage (V),y-offset,ymulti,Data Reduction Method,Aperture Tolerance (V),Aperture Burst,Aperture Min Sample Rate,Averaging Points,Decimation Interval
+,0,AFT_TM_BATT_VMON,AFT_TM_BATT_VMON,Yes,60,0,1,Aperture,3,5,1000,1000,1000
+,1,WEM_WH_TX_MON_PWR,WEM_WH_TX_MON_PWR,Yes,30,0,1,Aperture,3,5,1000,1000,1000
+,2,EXT_PWR_VMON,EXT_PWR_VMON,Yes,60,0,1,Aperture,3,5,1000,1000,1000
+,3,ICU_CMP_MON_PWR,ICU_CMP_MON_PWR,Yes,30,0,1,Aperture,3,5,1000,1000,1000
+,4,AFS_AOX_VMON,AFS_AOX_VMON,Yes,30,0,1,Aperture,3,5,1000,1000,1000
+,5,FSA_GR_RAIL_B_MON,FSA_GR_RAIL_B_MON,Yes,60,0,1,Aperture,3,5,1000,1000,1000
+,6,FSA_GR_RAIL_A_MON,FSA_GR_RAIL_A_MON,Yes,60,0,1,Aperture,3,5,1000,1000,1000
+,7,FSA_DISCRETE_A_VMON,FSA_DISCRETE_A_VMON,Yes,60,0,1,Aperture,3,5,1000,1000,1000
+engine config,enabled,address,Reference Clock,Sample Clock Active Edge ,Trig. Type,Trig. Source,Trig. Slope,Sample Mode,Sample Rate (samples/s),,,,
+,yes,PXIe-4300_04,PXIe_Clk100,Rising,Start-Digital Edge,PXI_Star,Rising,Continuous,250000,,,,
+channel config,Address,SW Alias,Description,Enabled,Max Voltage (V),y-offset,ymulti,Data Reduction Method,Aperture Tolerance (V),Aperture Burst,Aperture Min Sample Rate,Averaging Points,Decimation Interval
+,0,FSA_DISCRETE_B_VMON,FSA_DISCRETE_B_VMON,Yes,60,0,1,Aperture,3,5,1000,1000,1000
+,1,FSA_DISCRETE_C_VMON,FSA_DISCRETE_C_VMON,Yes,60,0,1,Aperture,3,5,1000,1000,1000
+,2,FSA_DISCRETE_D_VMON,FSA_DISCRETE_D_VMON,Yes,60,0,1,Aperture,3,5,1000,1000,1000
+,3,FSA_AMP_EN_MON,FSA_AMP_EN_MON,Yes,30,0,1,Aperture,3,5,1000,1000,1000
+,4,FSA_A4_VMON_DIGITIZER,FSA_A4_VMON_DIGITIZER,Yes,60,0,1,Aperture,3,5,1000,1000,1000
+,5,FSA_A3_VMON_DIGITIZER,FSA_A3_VMON_DIGITIZER,Yes,60,0,1,Aperture,3,10,1000,1000,1000
+,6,FSA_A1_VMON,FSA_A1_VMON,Yes,60,0,1,Aperture,3,10,1000,1000,1000
+,7,WEM_ANALOG_STATE_A_RST,WEM_ANALOG_STATE_A_RST,Yes,30,0,1,Aperture,3,5,1000,1000,1000
+engine config,enabled,address,Reference Clock,Sample Clock Active Edge ,Trig. Type,Trig. Source,Trig. Slope,Sample Mode,Sample Rate (samples/s),,,,
+,yes,PXIe-4300_05,PXIe_Clk100,Rising,Start-Digital Edge,PXI_Star,Rising,Continuous,250000,,,,
+channel config,Address,SW Alias,Description,Enabled,Max Voltage (V),y-offset,ymulti,Data Reduction Method,Aperture Tolerance (V),Aperture Burst,Aperture Min Sample Rate,Averaging Points,Decimation Interval
+,0,ICU_DISCRETE_A_VMON,ICU_DISCRETE_A_VMON,Yes,45,0,1,Aperture,3,5,1000,1000,1000
+,1,ICU_DISCRETE_B_VMON,ICU_DISCRETE_B_VMON,Yes,45,0,1,Aperture,3,5,1000,1000,1000
+,2,ICU_DISCRETE_C_VMON,ICU_DISCRETE_C_VMON,Yes,45,0,1,Aperture,3,5,1000,1000,1000
+,3,ICU_DISCRETE_D_VMON,ICU_DISCRETE_D_VMON,Yes,45,0,1,Aperture,3,5,1000,1000,1000
+,4,ICU_FUNC_A_VMON,ICU_FUNC_A_VMON,Yes,45,0,1,Aperture,3,5,1000,1000,1000
+,5,ICU_FUNC_B_VMON,ICU_FUNC_B_VMON,Yes,45,0,1,Aperture,3,5,1000,1000,1000
+,6,ICU_FUNC_C_VMON,ICU_FUNC_C_VMON,Yes,45,0,1,Aperture,3,5,1000,1000,1000
+,7,ICU_FUNC_D_VMON,ICU_FUNC_D_VMON,Yes,45,0,1,Aperture,3,5,1000,1000,1000
+engine config,enabled,address,Reference Clock,Sample Clock Active Edge ,Trig. Type,Trig. Source,Trig. Slope,Sample Mode,Sample Rate (samples/s),,,,
+,yes,PXIe-4300_06,PXIe_Clk100,Rising,Start-Digital Edge,PXI_Star,Rising,Continuous,250000,,,,
+channel config,Address,SW Alias,Description,Enabled,Max Voltage (V),y-offset,ymulti,Data Reduction Method,Aperture Tolerance (V),Aperture Burst,Aperture Min Sample Rate,Averaging Points,Decimation Interval
+,0,ICU_A1_VMON,ICU_A1_VMON,Yes,60,0,1,Aperture,10,50,1000,1000,1000
+,1,ICU_A3_VMON_DIGITIZER,ICU_A3_VMON_DIGITIZER,Yes,60,0,1,Aperture,10,100,1000,1000,1000
+,2,ICU_TMTO,ICU_TMTO,Yes,60,0,1,Aperture,1,5,1000,1000,1000
+,3,WEM_FUNC_PWR_1_VMON,WEM_FUNC_PWR_1_VMON,Yes,60,0,1,Aperture,1,5,1000,1000,1000
+,4,WEM_FUNC_PWR_2_VMON,WEM_FUNC_PWR_2_VMON,Yes,60,0,1,Aperture,1,5,1000,1000,1000
+,5,WEM_12V_VMON,WEM_12V_VMON,Yes,60,0,1,Aperture,1,5,1000,1000,1000
+,6,WEM_V1_SNS,WEM_V1_SNS,Yes,60,0,1,Aperture,1,5,1000,1000,1000
+,7,WEM_CTF,WEM_CTF,Yes,60,0,1,Aperture,1,5,1000,1000,1000
+engine config,enabled,address,Reference Clock,Sample Clock Active Edge ,Trig. Type,Trig. Source,Trig. Slope,Sample Mode,Sample Rate (samples/s),,,,
+,yes,PXIe-4300_07,PXIe_Clk100,Rising,Start-Digital Edge,PXI_Star,Rising,Continuous,250000,,,,
+channel config,Address,SW Alias,Description,Enabled,Max Voltage (V),y-offset,ymulti,Data Reduction Method,Aperture Tolerance (V),Aperture Burst,Aperture Min Sample Rate,Averaging Points,Decimation Interval
+,0,A00_Load_Volt,A00_Load_Volt,Yes,60,0,1,Aperture,1,10,1000,1000,1000
+,1,A01_Load_Volt,A01_Load_Volt,Yes,60,0,1,Aperture,1,10,1000,1000,1000
+,2,A02_Load_Volt,A02_Load_Volt,Yes,60,0,1,Aperture,1,10,1000,1000,1000
+,3,A03_Load_Volt,A03_Load_Volt,Yes,60,0,1,Aperture,1,10,1000,1000,1000
+,4,J108_PWR,J108_PWR,Yes,60,0,1,Aperture,1,10,1000,1000,1000
+,5,J108_PWR_Current,J108_PWR_Current,Yes,30,0,1,Aperture,1,5,1000,1000,1000
+,6,A4_HV,A4_HV,Yes,60,0,1,Aperture,1,5,1000,1000,1000
+,7,A4_VCAP_HVMON,A4_VCAP_HVMON,Yes,30,0,1,Aperture,1,5,1000,1000,1000
+engine config,enabled,address,Reference Clock,Sample Clock Active Edge ,Trig. Type,Trig. Source,Trig. Slope,Sample Mode,Sample Rate (samples/s),,,,
+,yes,PXIe-4300_08,PXIe_Clk100,Rising,Start-Digital Edge,PXI_Star,Rising,Continuous,250000,,,,
+channel config,Address,SW Alias,Description,Enabled,Max Voltage (V),y-offset,ymulti,Data Reduction Method,Aperture Tolerance (V),Aperture Burst,Aperture Min Sample Rate,Averaging Points,Decimation Interval
+,0,A2_VMON_DIGITIZER,A2_VMON_DIGITIZER,Yes,60,0,1,Aperture,1,20,1000,1000,1000
+,1,D58,D58,Yes,10,0,1,Aperture,0.5,5,1000,1000,1000
+,2,D59,D59,Yes,10,0,1,Aperture,0.5,5,1000,1000,1000
+,3,D60,D60,Yes,10,0,1,Aperture,0.5,5,1000,1000,1000
+,4,D61,D61,Yes,10,0,1,Aperture,0.5,5,1000,1000,1000
+,5,D62,D62,Yes,10,0,1,Aperture,0.5,5,1000,1000,1000
+,6,D63,D63,Yes,10,0,1,Aperture,0.5,5,1000,1000,1000
+,7,D64,D64,Yes,10,0,1,Aperture,0.5,5,1000,1000,1000
+engine config,enabled,address,Reference Clock,Sample Clock Active Edge ,Trig. Type,Trig. Source,Trig. Slope,Sample Mode,Sample Rate (samples/s),,,,
+,No,PXIe-4300_09,PXIe_Clk100,Rising,Start-Digital Edge,PXI_Star,Rising,Continuous,250000,,,,
+channel config,Address,SW Alias,Description,Enabled,Max Voltage (V),y-offset,ymulti,Data Reduction Method,Aperture Tolerance (V),Aperture Burst,Aperture Min Sample Rate,Averaging Points,Decimation Interval
+,0,A2_VMON_DIGITIZER,A2_VMON_DIGITIZER,No,2,0,1,Aperture,1,20,1000,1000,1000
+,1,D58,D58,No,2,0,1,Aperture,0.5,5,1000,1000,1000
+,2,D59,D59,No,2,0,1,Aperture,0.5,5,1000,1000,1000
+,3,D60,D60,No,2,0,1,Aperture,0.5,5,1000,1000,1000
+,4,D61,D61,No,5,0,1,Aperture,0.5,5,1000,1000,1000
+,5,D62,D62,No,5,0,1,Aperture,0.5,5,1000,1000,1000
+,6,D63,D63,No,2,0,1,Aperture,0.5,5,1000,1000,1000
+,7,D64,D64,No,2,0,1,Aperture,0.5,5,1000,1000,1000
+engine config,enabled,address,Reference Clock,Sample Clock Active Edge ,Trig. Type,Trig. Source,Trig. Slope,Sample Mode,Sample Rate (samples/s),,,,
+,yes,PXIe-4300_10,PXIe_Clk100,Rising,Start-Digital Edge,PXI_Star,Rising,Continuous,250000,,,,
+channel config,Address,SW Alias,Description,Enabled,Max Voltage (V),y-offset,ymulti,Data Reduction Method,Aperture Tolerance (V),Aperture Burst,Aperture Min Sample Rate,Averaging Points,Decimation Interval
+,0,DISCRETE_A_IMON,DISCRETE_A_IMON,Yes,2,0,1,Aperture,1,5,1000,1000,1000
+,1,DISCRETE_B_IMON,DISCRETE_B_IMON,Yes,2,0,1,Aperture,1,5,1000,1000,1000
+,2,DISCRETE_C_IMON,DISCRETE_C_IMON,Yes,2,0,1,Aperture,1,5,1000,1000,1000
+,3,DISCRETE_D_IMON,DISCRETE_D_IMON,Yes,2,0,1,Aperture,1,5,1000,1000,1000
+,4,FUNC_PWR_1_IMON,FUNC_PWR_1_IMON,Yes,5,0,1,Aperture,1,5,1000,1000,1000
+,5,FUNC_PWR_2_IMON,FUNC_PWR_2_IMON,Yes,5,0,1,Aperture,1,5,1000,1000,1000
+,6,A00_IMON,A00_IMON,Yes,2,0,1,Aperture,1,5,1000,1000,1000
+,7,A01_IMON,A01_IMON,Yes,2,0,1,Aperture,1,5,1000,1000,1000
+engine config,enabled,address,Reference Clock,Sample Clock Active Edge ,Trig. Type,Trig. Source,Trig. Slope,Sample Mode,Sample Rate (samples/s),,,,
+,yes,PXIe-4300_11,PXIe_Clk100,Rising,Start-Digital Edge,PXI_Star,Rising,Continuous,250000,,,,
+channel config,Address,SW Alias,Description,Enabled,Max Voltage (V),y-offset,ymulti,Data Reduction Method,Aperture Tolerance (V),Aperture Burst,Aperture Min Sample Rate,Averaging Points,Decimation Interval
+,0,A02_IMON,A02_IMON,Yes,2,0,1,Aperture,1,5,1000,1000,1000
+,1,A03_IMON,A03_IMON,Yes,2,0,1,Aperture,1,5,1000,1000,1000
+,2,A3_IMON_DIGITIZER,A3_IMON_DIGITIZER,Yes,2,0,1,Aperture,1,10,1000,1000,1000
+,3,A1_IMON,A1_IMON,Yes,2,0,1,Aperture,1,10,1000,1000,1000
+,4,EXT_TM_PWR_IMON,EXT_TM_PWR_IMON,Yes,2,0,1,Aperture,1,5,1000,1000,1000
+,5,BATT_VOLTAGE_IMON,BATT_VOLTAGE_IMON,Yes,2,0,1,Aperture,1,5,1000,1000,1000
+,6,AFT_TM_Batt_IMON,AFT_TM_Batt_IMON,Yes,2,0,1,Aperture,1,5,1000,1000,1000
+,7,WEM_WH_TX_MON_PWR_Current,WEM_WH_TX_MON_PWR_Current,Yes,2,0,1,Aperture,1,5,1000,1000,1000
+engine config,enabled,address,Reference Clock,Sample Clock Active Edge ,Trig. Type,Trig. Source,Trig. Slope,Sample Mode,Sample Rate (samples/s),,,,
+,yes,PXIe-4300_12,PXIe_Clk100,Rising,Start-Digital Edge,PXI_Star,Rising,Continuous,250000,,,,
+channel config,Address,SW Alias,Description,Enabled,Max Voltage (V),y-offset,ymulti,Data Reduction Method,Aperture Tolerance (V),Aperture Burst,Aperture Min Sample Rate,Averaging Points,Decimation Interval
+,0,EXT_PWR_IMON,EXT_PWR_IMON,Yes,2,0,1,Aperture,1,5,1000,1000,1000
+,1,AFS_AFE_MON,AFS_AFE_MON,Yes,5,0,1,Aperture,1,5,1000,1000,1000
+,2,AFS_AFI_MON,AFS_AFI_MON,Yes,5,0,1,Aperture,1,5,1000,1000,1000
+,3,FSA_REG_VCC_MON,FSA_REG_VCC_MON,Yes,10,0,1,Aperture,1,5,1000,1000,1000
+,4,FSA_MAIN_HV_MON,FSA_MAIN_HV_MON,Yes,10,0,1,Aperture,1,5,1000,1000,1000
+,5,FSA_AUX_HV_MON,FSA_AUX_HV_MON,Yes,10,0,1,Aperture,1,5,1000,1000,1000
+,6,FSA_FB_EN_MON,FSA_FB_EN_MON,Yes,10,0,1,Aperture,1,5,1000,1000,1000
+,7,FSA_1_2V_REF_VMON,FSA_1_2V_REF_VMON,Yes,10,0,1,Aperture,1,5,1000,1000,1000
+engine config,enabled,address,Reference Clock,Sample Clock Active Edge ,Trig. Type,Trig. Source,Trig. Slope,Sample Mode,Sample Rate (samples/s),,,,
+,yes,PXIe-4300_13,PXIe_Clk100,Rising,Start-Digital Edge,PXI_Star,Rising,Continuous,250000,,,,
+channel config,Address,SW Alias,Description,Enabled,Max Voltage (V),y-offset,ymulti,Data Reduction Method,Aperture Tolerance (V),Aperture Burst,Aperture Min Sample Rate,Averaging Points,Decimation Interval
+,0,ICU_DISC_AB_IMON,ICU_DISC_AB_IMON,Yes,2,0,1,Aperture,1,5,1000,1000,1000
+,1,ICU_DISC_CD_IMON,ICU_DISC_CD_IMON,Yes,2,0,1,Aperture,1,5,1000,1000,1000
+,2,ICU_A2_VMON_DIGITIZER,ICU_A2_VMON_DIGITIZER,Yes,10,0,1,Aperture,1,5,1000,1000,1000
+,3,ICU_SYS_SW_RTN_IMON_P1,ICU_SYS_SW_RTN_IMON_P1,Yes,2,0,1,Aperture,1,5,1000,1000,1000
+,4,WEM_FUNC_PWR_1_IMON,WEM_FUNC_PWR_1_IMON,Yes,2,0,1,Aperture,1,5,1000,1000,1000
+,5,WEM_FUNC_PWR_2_IMON,WEM_FUNC_PWR_2_IMON,Yes,2,0,1,Aperture,1,5,1000,1000,1000
+,6,WEM_V1_MON,WEM_V1_MON,Yes,5,0,1,Aperture,1,5,1000,1000,1000
+,7,WEM_3V3_MON ,WEM_3V3_MON ,Yes,5,0,1,Aperture,1,5,1000,1000,1000
+engine config,enabled,address,Reference Clock,Sample Clock Active Edge ,Trig. Type,Trig. Source,Trig. Slope,Sample Mode,Sample Rate (samples/s),,,,
+,yes,PXIe-4300_14,PXIe_Clk100,Rising,Start-Digital Edge,PXI_Star,Rising,Continuous,250000,,,,
+channel config,Address,SW Alias,Description,Enabled,Max Voltage (V),y-offset,ymulti,Data Reduction Method,Aperture Tolerance (V),Aperture Burst,Aperture Min Sample Rate,Averaging Points,Decimation Interval
+,0,WEM_V2_MON,WEM_V2_MON,Yes,10,0,1,Aperture,1,5,1000,1000,1000
+,1,FSA_3V3_VMON,FSA_3V3_VMON,Yes,10,0,1,Aperture,1,5,1000,1000,1000
+,2,D107,D107,Yes,10,0,1,Aperture,1,5,1000,1000,1000
+,3,A2_IMON_DIGITIZER,A2_IMON_DIGITIZER,Yes,10,0,1,Aperture,1,5,1000,1000,1000
+,4,INT_STATE_A,INT_STATE_A,Yes,10,0,1,Aperture,1,5,1000,1000,1000
+,5,INT_STATE_B,INT_STATE_B,Yes,10,0,1,Aperture,1,5,1000,1000,1000
+,6,WEM_ANALOG_STATE_A_RST_IMON,WEM_ANALOG_STATE_A_RST_IMON,Yes,10,0,1,Aperture,1,5,1000,1000,1000
+,7,D112,D112,Yes,10,0,1,Aperture,1,5,1000,1000,1000
+engine config,enabled,address,Reference Clock,Sample Clock Active Edge ,Trig. Type,Trig. Source,Trig. Slope,Sample Mode,Sample Rate (samples/s),,,,
+,No,PXIe-4300_15,PXIe_Clk100,Rising,Start-Digital Edge,PXI_Star,Rising,Continuous,250000,,,,
+channel config,Address,SW Alias,Description,Enabled,Max Voltage (V),y-offset,ymulti,Data Reduction Method,Aperture Tolerance (V),Aperture Burst,Aperture Min Sample Rate,Averaging Points,Decimation Interval
+,0,D113,D113,No,10,0,1,Aperture,1,5,1000,1000,1000
+,1,D114,D114,No,10,0,1,Aperture,1,5,1000,1000,1000
+,2,D115,D115,No,10,0,1,Aperture,1,5,1000,1000,1000
+,3,D116,D116,No,10,0,1,Aperture,1,5,1000,1000,1000
+,4,D117,D117,No,10,0,1,Aperture,1,5,1000,1000,1000
+,5,D118,D118,No,10,0,1,Aperture,1,5,1000,1000,1000
+,6,D119,D119,No,10,0,1,Aperture,1,5,1000,1000,1000
+,7,D120,D120,No,10,0,1,Aperture,1,5,1000,1000,1000
