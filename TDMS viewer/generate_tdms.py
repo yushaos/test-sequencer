@@ -28,6 +28,9 @@ a3_points = 1_000_000
 a4_points = 100_000
 a5_points = 100_000
 a6_points = 100_000
+a7_points = 6_000_000
+a8_points = 6_000_000
+a9_points = 6_000_000
 
 a1_time, a1_data = generate_channel_data(a1_points)
 a2_time, a2_data = generate_channel_data(a2_points)
@@ -35,6 +38,19 @@ a3_time, a3_data = generate_channel_data(a3_points)
 a4_data = np.random.randn(a4_points)
 a5_data = np.random.randn(a5_points)
 a6_time, a6_data = generate_channel_data(a6_points, time_range=(0, 8))
+
+# Generate new signals
+# For A7 (0-10 range)
+a7_time = np.linspace(0, 10, a7_points)
+a7_data = np.random.uniform(0, 1, a7_points)
+
+# For A8 (0-10 range)
+a8_time = np.linspace(0, 10, a8_points)
+a8_data = np.random.uniform(9, 10, a8_points)
+
+# For A9 (0-10 range)
+a9_time = np.linspace(0, 10, a9_points)
+a9_data = np.random.uniform(-10, 10, a9_points)
 
 # Get unique filename
 filename = get_unique_filename("test_data.tdms")
@@ -64,6 +80,12 @@ with TdmsWriter(filename) as tdms_writer:
         ChannelObject(group, "A5", a5_data),
         ChannelObject(group, "A6", a6_data),
         ChannelObject(group, "A6_Time", a6_time),
+        ChannelObject(group, "A7", a7_data),
+        ChannelObject(group, "A7_Time", a7_time),
+        ChannelObject(group, "A8", a8_data),
+        ChannelObject(group, "A8_Time", a8_time),
+        ChannelObject(group, "A9", a9_data),
+        ChannelObject(group, "A9_Time", a9_time),
     ])
 
-print(f"TDMS file generated successfully: {filename}") 
+print(f"TDMS file generated successfully: {filename}")
