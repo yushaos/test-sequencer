@@ -1,12 +1,13 @@
 {
-  "signal_pairs": [
-    {
-      "x": "A6_Time",
-      "y": "A4"
-    },
-    {
-      "x": "A6_Time",
-      "y": "A5"
-    }
-  ]
+    "signal_pairs": [
+        {
+            "x": "A6_Time",
+            "y": "A4"
+        },
+        {
+            "x": "A6_Time",
+            "y": "A5"
+        }
+    ],
+    "last_directory": "C:/CORE/Modules/test-sequencer/TDMS viewer"
 }
