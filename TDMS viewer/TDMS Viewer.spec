@@ -3,10 +3,10 @@
 
 a = Analysis(
     ['tdms_viewer.py'],
-    pathex=['C:\\ProgramData\\anaconda3\\Lib\\site-packages'],
+    pathex=[],
     binaries=[],
-    datas=[('tdms_viewer_config.json', '.')],
-    hiddenimports=['PyQt5', 'PyQt5.QtCore', 'PyQt5.QtGui', 'PyQt5.QtWidgets', 'win32com.client'],
+    datas=[('tdms_viewer_config.json', '.'), ('TDMS viewer icon.ico', '.')],
+    hiddenimports=['pyqtgraph', 'scipy'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -22,7 +22,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='tdms_viewer',
+    name='TDMS Viewer',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

@@ -1,0 +1,36 @@
+{
+    "last_directory": "C:/CORE/Modules/yu-code/TDMS viewer/test_data_1.tdms",
+    "signal_pairs": [
+        {
+            "x": "Time",
+            "y": "Value"
+        },
+        {
+            "x": "Timestamp",
+            "y": "Data"
+        }
+    ],
+    "window_state": {
+        "maximized": true,
+        "size": [
+            1920,
+            1009
+        ],
+        "position": [
+            -1,
+            -8
+        ]
+    },
+    "graph_settings": {
+        "default_colors": [
+            "blue",
+            "red",
+            "green",
+            "purple",
+            "orange",
+            "cyan"
+        ],
+        "line_width": 2,
+        "show_grid": true
+    }
+}
