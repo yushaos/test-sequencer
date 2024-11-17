@@ -1,4 +1,4 @@
-def run( test):
+def run():
     print("Hello, World!")
     return True
 

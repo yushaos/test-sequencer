@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (
     QListWidgetItem
 )
 from PyQt5.QtCore import QTimer
-from PyQt5.QtGui import QBrush, QColor, QFont
+from PyQt5.QtGui import QBrush, QColor
 from gui.test_sequencer_ui import TestSequencerUI
 from scheduler import Scheduler
 from ni_timer import NITimer
@@ -17,105 +17,8 @@ from status_bar import StatusBar
 from config_utils import get_path
 from multiprocessing import Process, Queue
 import queue
-from threading import Thread
 import time
-
-# Add this function before the TestSequencer class definition
-def run_steps_worker(steps, step_queue, result_queue):
-    total_steps = sum(len([s for s in section if s['enable']]) 
-                     for section in steps.values())
-    current_step = 0
-    scheduler = Scheduler()
-    scheduler.steps = steps
-
-    for section, section_steps in steps.items():
-        result_queue.put(('section', section))
-        
-        for step_index, step in enumerate(section_steps):
-            if not step['enable']:
-                continue
-
-            # Send both step name AND index
-            result_queue.put(('step_start', {
-                'current': current_step,
-                'total': total_steps,
-                'name': step['step_name'],
-                'list_index': current_step  # Add this line
-            }))
-
-            try:
-                start_time = time.time()
-                step_thread = StepExecutionThread(scheduler, step)
-                step_thread.start()
-                
-                # Wait for step completion or end signal
-                while not step_thread.completed:
-                    # Check for end signal every 100ms
-                    try:
-                        if not step_queue.empty() and step_queue.get_nowait() == 'end':
-                            step_thread.join(timeout=1.0)
-                            result_queue.put(('end', None))
-                            return False
-                    except queue.Empty:
-                        pass
-                    time.sleep(0.1)
-                
-                # Ensure thread is complete
-                step_thread.join()
-                
-                # Check for errors
-                if step_thread.error:
-                    raise step_thread.error
-                
-                # Verify step result is explicitly True
-                if step_thread.result is not True:
-                    result_queue.put(('error', f"Step '{step['step_name']}' did not return True"))
-                    return False
-                
-                # Calculate duration
-                duration = time.time() - start_time
-                
-                # Include duration in step complete message
-                result_queue.put(('step_complete', {
-                    'current': current_step,
-                    'total': total_steps,
-                    'name': step['step_name'],
-                    'result': True,
-                    'duration': duration
-                }))
-
-            except Exception as e:
-                result_queue.put(('step_error', {
-                    'current': current_step,
-                    'total': total_steps,
-                    'name': step['step_name'],
-                    'error': str(e)
-                }))
-                return False
-            
-            current_step += 1
-
-    result_queue.put(('complete', None))
-    return True
-
-# Add this class at the top of the file with other imports
-class StepExecutionThread(Thread):
-    def __init__(self, scheduler, step):
-        super().__init__()
-        self.scheduler = scheduler
-        self.step = step
-        self.result = None
-        self.error = None
-        self.completed = False
-        
-    def run(self):
-        try:
-            # Execute the specific function from the step file
-            self.result = self.scheduler.execute_step(self.step)
-            self.completed = True
-        except Exception as e:
-            self.error = e
-            self.completed = True
+from sequence_runner import run_steps_worker
 
 class TestSequencer(TestSequencerUI):
     def __init__(self):
