@@ -1,28 +1,24 @@
 import sys
-import csv
 import os
 from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QPushButton, QLabel, QListWidget, QFileDialog, QProgressBar, QTableWidget, QTableWidgetItem, QMenu, QAction,
-    QListWidgetItem, QHeaderView
+    QApplication, QTableWidgetItem, QFileDialog, QMenu,
+    QListWidgetItem
 )
-from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtGui import QFont, QColor, QBrush
+from PyQt5.QtCore import QTimer
+from PyQt5.QtGui import QBrush, QColor, QFont
+from gui.test_sequencer_ui import TestSequencerUI
 from scheduler import Scheduler
 from ni_timer import NITimer
 from previous_sequences import PreviousSequences
-from pathlib import Path
-import datetime
 from result_files_handler import ResultFilesHandler
-import time
-from config_utils import get_path
 from error_box import ErrorBox
 from status_box import StatusBox
 from status_bar import StatusBar
-import json
+from config_utils import get_path
 from multiprocessing import Process, Queue
 import queue
 from threading import Thread
+import time
 
 # Add this function before the TestSequencer class definition
 def run_steps_worker(steps, step_queue, result_queue):
@@ -121,124 +117,34 @@ class StepExecutionThread(Thread):
             self.error = e
             self.completed = True
 
-class TestSequencer(QMainWindow):
+class TestSequencer(TestSequencerUI):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Tester Sequencer")
-        self.setGeometry(100, 100, 900, 600)
         
-        self.central_widget = QWidget()
-        self.setCentralWidget(self.central_widget)
-        
-        self.main_layout = QVBoxLayout(self.central_widget)
-        
-        self.setup_ui()
         self.scheduler = Scheduler()
         self.ni_timer = NITimer()
         self.previous_sequences = PreviousSequences()
         self.result_files_handler = ResultFilesHandler()
         
-        # Disable both Run and End Sequence buttons initially
         self.run_btn.setEnabled(False)
         self.end_sequence_btn.setEnabled(False)
         
-        self.max_error_messages = 3  # Set the maximum number of error messages
+        self.max_error_messages = 3
 
         self.error_box = ErrorBox(self.error_list)
         self.status_box = StatusBox(self.status_list)
         self.status_bar = StatusBar(self.progress_bar)
 
-        # Add these lines
         self.step_queue = Queue()
         self.result_queue = Queue()
         self.step_process = None
         self.step_timer = QTimer()
         self.step_timer.timeout.connect(self.check_step_result)
-        self.step_timer.start(100)  # Check every 100ms
+        self.step_timer.start(100)
 
-        self.current_section = ""  # Add this line
-
-    def setup_ui(self):
-        # Top Button Layout
-        top_button_layout = QHBoxLayout()
-        
-        # Reorder the buttons
-        self.load_sequence_btn = QPushButton("Load Sequence")
-        self.run_btn = QPushButton("Run")
-        self.end_sequence_btn = QPushButton("End Sequence")
-        self.prev_sequence_btn = QPushButton("Previous Sequence")
-        self.result_files_btn = QPushButton("Result Files")
-        self.settings_btn = QPushButton("Settings")
-        
-        buttons = [
-            self.load_sequence_btn, self.run_btn, self.end_sequence_btn,
-            self.prev_sequence_btn, self.result_files_btn, self.settings_btn
-        ]
-        
-        for btn in buttons:
-            btn.setFixedHeight(30)
-            btn.setFixedWidth(120)
-            top_button_layout.addWidget(btn)
-        
-        self.main_layout.addLayout(top_button_layout)
-        
-        # Content Layout with 3 Columns
-        content_layout = QHBoxLayout()
-        
-        # Column 1: Sequence List
-        left_layout = QVBoxLayout()
-        
-        self.sequence_list = QListWidget()
-        left_layout.addWidget(QLabel("Sequence Steps"))
-        left_layout.addWidget(self.sequence_list)
-        
-        content_layout.addLayout(left_layout, 1)
-        
-        # Column 2: Progress Bar and Test Details
-        center_layout = QVBoxLayout()
-        
-        # Add Progress Bar above Test Details
-        self.progress_bar = QProgressBar()
-        center_layout.addWidget(QLabel("Test Progress"))
-        center_layout.addWidget(self.progress_bar)
-
-        # Modify the test details table setup
-        self.table_placeholder = QTableWidget()
-        self.table_placeholder.setRowCount(0)
-        self.table_placeholder.setColumnCount(2)  # Only 2 columns now
-        self.table_placeholder.setHorizontalHeaderLabels(["Step Name", "Duration"])
-        
-        # Set column widths
-        header = self.table_placeholder.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.Stretch)  # Step name column stretches
-        header.setSectionResizeMode(1, QHeaderView.Fixed)    # Fixed width for duration
-        self.table_placeholder.setColumnWidth(1, 100)        # Set width for duration column
-        
-        center_layout.addWidget(QLabel("Test Details"))
-        center_layout.addWidget(self.table_placeholder)
-        
-        content_layout.addLayout(center_layout, 1)
-        
-        # Column 3: Status and Errors
-        right_layout = QVBoxLayout()
-        
-        self.status_list = QListWidget()
-        right_layout.addWidget(QLabel("Status"))
-        right_layout.addWidget(self.status_list)
-        
-        # Modify the error list widget setup
-        self.error_list = QListWidget()
-        self.error_list.setWordWrap(True)  # Enable word wrap
-        self.error_list.setStyleSheet("QListWidget { color: red; }")  # Make text red
-        right_layout.addWidget(QLabel("Errors"))
-        right_layout.addWidget(self.error_list)
-        
-        content_layout.addLayout(right_layout, 1)
-        
-        self.main_layout.addLayout(content_layout)
-        
+        self.current_section = ""
         self.connect_signals()
-        
+
     def connect_signals(self):
         self.prev_sequence_btn.clicked.connect(self.show_previous_sequences)
         self.load_sequence_btn.clicked.connect(self.load_sequence)
@@ -297,21 +203,7 @@ class TestSequencer(QMainWindow):
     def update_sequence_list(self):
         self.sequence_list.clear()
         steps = self.scheduler.get_steps()
-        for section in steps.keys():
-            # Create a custom item for the section header
-            header_item = QListWidgetItem(f"--- {section.upper()} ---")
-            font = QFont()
-            font.setPointSize(12)  # Increase font size
-            font.setBold(True)     # Make it bold
-            header_item.setFont(font)
-            header_item.setBackground(QBrush(QColor(200, 200, 255)))  # Light blue background
-            self.sequence_list.addItem(header_item)
-            
-            for step in steps[section]:
-                if step['enable']:
-                    step_item = QListWidgetItem(f"  {step['step_name']}")
-                    step_item.setBackground(QBrush(QColor(255, 255, 255)))  # White background
-                    self.sequence_list.addItem(step_item)
+        super().update_sequence_list(steps)
 
     def run_sequence(self):
         self.status_box.clear()
