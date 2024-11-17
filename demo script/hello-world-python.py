@@ -1,8 +1,8 @@
-def run(config, argument):
+def run( test):
     print("Hello, World!")
     return True
 
 if __name__ == "__main__":
     # For testing the script directly
-    result = run({}, "test argument")
+    result = run()
     print(f"The function returned: {result}")

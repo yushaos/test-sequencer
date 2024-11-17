@@ -8,7 +8,7 @@ def write_tdms():
     print("Writing TDMS file...")
     return True
 
-def run(config, argument):
+def run():
     # Create the base result directory if it doesn't exist
     base_result_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'result TDMS')
     os.makedirs(base_result_dir, exist_ok=True)
@@ -50,5 +50,5 @@ def run(config, argument):
     return True
 
 if __name__ == "__main__":
-    result = run({}, "")
+    result = run()
     print(f"The function returned: {result}")

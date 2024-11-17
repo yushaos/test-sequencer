@@ -110,7 +110,7 @@ class StepExecutionThread(Thread):
         
     def run(self):
         try:
-            # Execute the step and wait for completion
+            # Execute the specific function from the step file
             self.result = self.scheduler.execute_step(self.step)
             self.completed = True
         except Exception as e:
@@ -263,10 +263,15 @@ class TestSequencer(TestSequencerUI):
             self.step_process.join()
             self.step_process = None
         
+        # Reset GUI to startup state
         self.run_btn.setEnabled(True)
         self.end_sequence_btn.setEnabled(False)
         self.status_bar.set_complete()
-        self.reset_step_highlights()  # Add this line to clear highlights
+        self.reset_step_highlights()
+        self.sequence_list.clear()  # Clear the sequence list
+        self.error_box.clear()      # Clear error messages
+        self.status_box.clear()     # Clear status messages
+        self.run_btn.setEnabled(False)  # Disable run button until new sequence is loaded
 
     def end_sequence(self):
         if self.step_process and self.step_process.is_alive():
@@ -286,11 +291,10 @@ class TestSequencer(TestSequencerUI):
                     self.step_process.terminate()
                     self.step_process.join()
                 
-                self.cleanup_process()
-                
             except Exception as e:
                 print(f"Error ending sequence: {e}")
-                self.cleanup_process()
+            finally:
+                self.cleanup_process()  # Always cleanup, even if there's an error
 
     def show_result_files_menu(self):
         menu = self.result_files_handler.show_result_files_menu(self)
