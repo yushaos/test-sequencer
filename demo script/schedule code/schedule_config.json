@@ -1,0 +1,26 @@
+{
+    "test_name": "Example Test Sequence",
+    "description": "A simple test sequence with timed steps",
+    "steps": [
+        {
+            "name": "Initialize",
+            "execution_time": 1,
+            "message": "schedule 1 step 1"
+        },
+        {
+            "name": "Step 1",
+            "execution_time": 2,
+            "message": "schedule 1 step 2"
+        },
+        {
+            "name": "Step 2",
+            "execution_time": 3,
+            "message": "schedule 1 step 3"
+        },
+        {
+            "name": "Cleanup",
+            "execution_time": 4,
+            "message": "schedule 1 step 4"
+        }
+    ]
+}

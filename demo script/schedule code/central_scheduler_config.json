@@ -1,0 +1,12 @@
+{
+	"scripts": [
+		{
+			"script_path": "schedule_demo_code.py",
+			"config_path": "schedule_config.json"
+		},
+		{
+			"script_path": "schedule_demo_code2.py",
+			"config_path": "schedule_config2.json"
+		}
+	]
+}
