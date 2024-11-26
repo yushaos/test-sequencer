@@ -1,0 +1,31 @@
+{
+    "test_name": "CPU Stress Test Sequence",
+    "description": "A sequence of CPU stress tests with varying durations",
+    "steps": [
+        {
+            "name": "Stress1 step1",
+            "execution_time": 0,
+            "stress_duration": 1.0
+        },
+        {
+            "name": "Stress1 step2",
+            "execution_time": 2,
+            "stress_duration": 2.0
+        },
+        {
+            "name": "Stress1 step3",
+            "execution_time": 5,
+            "stress_duration": 3.0
+        },
+        {
+            "name": "Stress1 step4",
+            "execution_time": 9,
+            "stress_duration": 2.0
+        },
+        {
+            "name": "Stress1 step5",
+            "execution_time": 12,
+            "stress_duration": 1.0
+        }
+    ]
+}

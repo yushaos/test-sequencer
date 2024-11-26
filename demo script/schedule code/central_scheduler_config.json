@@ -1,6 +1,14 @@
 {
 	"scripts": [
 		{
+			"script_path": "cpu_stress_script.py",
+			"config_path": "stress_config1.json"
+		},
+		{
+			"script_path": "cpu_stress_script2.py",
+			"config_path": "stress_config2.json"
+		},
+		{
 			"script_path": "schedule_demo_code.py",
 			"config_path": "schedule_config.json"
 		},

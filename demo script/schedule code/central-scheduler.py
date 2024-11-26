@@ -30,8 +30,21 @@ class CentralScheduler:
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
             
-            # Create instance of TestScript
-            test_script = module.TestScript(config_path)
+            # Look for any class that has the required methods
+            script_class = None
+            for attr_name in dir(module):
+                attr = getattr(module, attr_name)
+                if isinstance(attr, type) and all(
+                    hasattr(attr, method) for method in ['load_config', 'execute_step']
+                ):
+                    script_class = attr
+                    break
+                    
+            if script_class is None:
+                raise AttributeError(f"No suitable test script class found in {script_path}")
+            
+            # Create instance of found script class
+            test_script = script_class(config_path)
             self.test_scripts[script_name] = test_script
             
             # Add all steps to the central schedule
