@@ -1,190 +1,134 @@
 {
-  "setup": [
-    {
-      "step_name": "hello world",
-      "step_location": "C:\\Users\\yusha\\Desktop\\test sequencer\\demo script\\hello-world-python.py",
-      "config_location": "",
-      "enable": true,
-      "argument": ""
-    },
-    {
-      "step_name": "ni max check",
-      "step_location": "",
-      "config_location": "",
-      "enable": false,
-      "argument": ""
-    },
-    {
-      "step_name": "config ps",
-      "step_location": "",
-      "config_location": "",
-      "enable": false,
-      "argument": ""
-    },
-    {
-      "step_name": "config digitizer",
-      "step_location": "",
-      "config_location": "",
-      "enable": false,
-      "argument": ""
-    },
-    {
-      "step_name": "config scope",
-      "step_location": "",
-      "config_location": "",
-      "enable": false,
-      "argument": ""
-    },
-    {
-      "step_name": "config dmm",
-      "step_location": "",
-      "config_location": "",
-      "enable": false,
-      "argument": ""
-    },
-    {
-      "step_name": "config fpga",
-      "step_location": "",
-      "config_location": "",
-      "enable": false,
-      "argument": ""
-    }
-  ],
-  "test": [
-    {
-      "step_name": "master trigger",
-      "step_location": "",
-      "config_location": "",
-      "enable": false,
-      "argument": ""
-    },
-    {
-      "step_name": "wait until",
-      "step_location": "",
-      "config_location": "",
-      "enable": false,
-      "argument": "5"
-    },
-    {
-      "step_name": "config ps",
-      "step_location": "",
-      "config_location": "",
-      "enable": false,
-      "argument": ""
-    },
-    {
-      "step_name": "wait until",
-      "step_location": "",
-      "config_location": "",
-      "enable": false,
-      "argument": "10"
-    },
-    {
-      "step_name": "read digitzer",
-      "step_location": "",
-      "config_location": "",
-      "enable": false,
-      "argument": ""
-    },
-    {
-      "step_name": "wait until",
-      "step_location": "",
-      "config_location": "",
-      "enable": false,
-      "argument": "15"
-    }
-  ],
-  "cleanup": [
-    {
-      "step_name": "close PS",
-      "step_location": "",
-      "config_location": "",
-      "enable": false,
-      "argument": ""
-    },
-    {
-      "step_name": "close digitizer",
-      "step_location": "",
-      "config_location": "",
-      "enable": false,
-      "argument": ""
-    },
-    {
-      "step_name": "close scope",
-      "step_location": "",
-      "config_location": "",
-      "enable": false,
-      "argument": ""
-    },
-    {
-      "step_name": "close dmm",
-      "step_location": "",
-      "config_location": "",
-      "enable": false,
-      "argument": ""
-    },
-    {
-      "step_name": "close fpga",
-      "step_location": "",
-      "config_location": "",
-      "enable": false,
-      "argument": ""
-    },
-    {
-      "step_name": "process digitzer",
-      "step_location": "",
-      "config_location": "",
-      "enable": false,
-      "argument": ""
-    },
-    {
-      "step_name": "process scope",
-      "step_location": "",
-      "config_location": "",
-      "enable": false,
-      "argument": ""
-    },
-    {
-      "step_name": "process dmm",
-      "step_location": "",
-      "config_location": "",
-      "enable": false,
-      "argument": ""
-    },
-    {
-      "step_name": "process fpga",
-      "step_location": "",
-      "config_location": "",
-      "enable": false,
-      "argument": ""
-    },
-    {
-      "step_name": "combine tdms file",
-      "step_location": "",
-      "config_location": "",
-      "enable": false,
-      "argument": ""
-    },
-    {
-      "step_name": "post data process",
-      "step_location": "",
-      "config_location": "",
-      "enable": false,
-      "argument": ""
-    },
-    {
-      "step_name": "open viewer",
-      "step_location": "",
-      "config_location": "",
-      "enable": false,
-      "argument": ""
-    },
-    {
-      "step_name": "hello world2",
-      "step_location": "C:\\Users\\yusha\\Desktop\\test sequencer\\demo script\\hello-world-python.py",
-      "config_location": "",
-      "enable": true,
-      "argument": ""
-    }
-  ]
+	"setup": [
+		{
+			"step_name": "hello world",
+			"enable": true,
+			"call_type": "function",
+			"step_location": "C:\\Users\\yusha\\Desktop\\test sequencer\\demo script\\hello-world-python.py",
+			"function_name": "run",
+			"class_name": "",
+			"Wait_condition": "wait",
+			"argument": ""
+		},
+		{
+			"step_name": "wait3sec",
+			"enable": true,
+			"call_type": "script",
+			"step_location": "C:\\Users\\yusha\\Desktop\\test sequencer\\demo script\\wait_3_seconds.py",
+			"function_name": "",
+			"class_name": "",
+			"Wait_condition": "wait",
+			"argument": ""
+		},
+		{
+			"step_name": "schedule demo 1",
+			"enable": true,
+			"call_type": "method",
+			"step_location": "C:\\Users\\yusha\\Desktop\\test sequencer\\demo script\\schedule code\\schedule_demo_code.py",
+			"function_name": "load_config",
+			"class_name": "TestScript",
+			"Wait_condition": "wait",
+			"argument": "C:\\Users\\yusha\\Desktop\\test sequencer\\demo script\\schedule code\\schedule_config.json"
+		}
+	],
+	"test": [
+		{
+			"step_name": "master trigger",
+			"step_location": "",
+			"enable": false,
+			"argument": ""
+		},
+		{
+			"step_name": "wait until",
+			"step_location": "",
+			"enable": false,
+			"argument": "5"
+		},
+		{
+			"step_name": "wait until",
+			"step_location": "",
+			"enable": false,
+			"argument": "10"
+		}
+	],
+	"cleanup": [
+		{
+			"step_name": "close PS",
+			"step_location": "",
+			"enable": false,
+			"argument": ""
+		},
+		{
+			"step_name": "close digitizer",
+			"step_location": "",
+			"enable": false,
+			"argument": ""
+		},
+		{
+			"step_name": "close scope",
+			"step_location": "",
+			"enable": false,
+			"argument": ""
+		},
+		{
+			"step_name": "close dmm",
+			"step_location": "",
+			"enable": false,
+			"argument": ""
+		},
+		{
+			"step_name": "close fpga",
+			"step_location": "",
+			"enable": false,
+			"argument": ""
+		},
+		{
+			"step_name": "process digitzer",
+			"step_location": "",
+			"enable": false,
+			"argument": ""
+		},
+		{
+			"step_name": "process scope",
+			"step_location": "",
+			"enable": false,
+			"argument": ""
+		},
+		{
+			"step_name": "process dmm",
+			"step_location": "",
+			"enable": false,
+			"argument": ""
+		},
+		{
+			"step_name": "process fpga",
+			"step_location": "",
+			"enable": false,
+			"argument": ""
+		},
+		{
+			"step_name": "combine tdms file",
+			"step_location": "",
+			"enable": false,
+			"argument": ""
+		},
+		{
+			"step_name": "post data process",
+			"step_location": "",
+			"enable": false,
+			"argument": ""
+		},
+		{
+			"step_name": "open viewer",
+			"step_location": "",
+			"enable": false,
+			"argument": ""
+		},
+		{
+			"step_name": "hello world2",
+			"step_location": "C:\\Users\\yusha\\Desktop\\test sequencer\\demo script\\hello-world-python.py",
+			"enable": true,
+			"argument": ""
+		}
+	]
 }

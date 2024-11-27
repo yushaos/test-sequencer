@@ -15,33 +15,44 @@ class Scheduler:
         return self.steps
 
     def execute_step(self, step):
-        if not step['enable']:
-            return True
-            
-        if not step['step_location']:
+        if not step['enable'] or not step['step_location']:
             return True
             
         try:
             # Get the directory containing the script
             script_dir = os.path.dirname(step['step_location'])
-            
-            # Add script directory to Python path if not already there
             if script_dir not in sys.path:
                 sys.path.append(script_dir)
             
-            # Import the module dynamically
-            spec = importlib.util.spec_from_file_location(
-                "module", step['step_location']
-            )
+            # Handle script type - execute entire file
+            if step.get('call_type') == 'script':
+                with open(step['step_location']) as f:
+                    script_content = f.read()
+                namespace = {}
+                exec(script_content, namespace)
+                return True
+            
+            # Import the module for function/method calls    
+            spec = importlib.util.spec_from_file_location("module", step['step_location'])
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
             
-            # Get the specified function
-            func = getattr(module, step['function_name'])
+            # Handle method type - call method from class instance
+            if step.get('call_type') == 'method':
+                class_obj = getattr(module, step['class_name'])
+                instance = class_obj()
+                func = getattr(instance, step['function_name'])
             
-            # Execute the function
-            result = func()
+            # Handle function type - call function directly
+            else:
+                func = getattr(module, step['function_name'])
             
+            # Execute with argument if provided
+            if step.get('argument'):
+                result = func(step['argument'])
+            else:
+                result = func()
+                
             return result if result is not None else True
             
         except Exception as e:
