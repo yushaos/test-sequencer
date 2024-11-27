@@ -14,7 +14,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-class TestScript:
+class TestScript2:
     def __init__(self, config_path):
         self.config_path = config_path
         self.config = self.load_config()
@@ -62,5 +62,5 @@ if __name__ == "__main__":
     config_path = sys.argv[1] if len(sys.argv) > 1 else "schedule_config2.json"
     
     # Create and run test script
-    test_script = TestScript(config_path)
+    test_script = TestScript2(config_path)
     test_script.run()

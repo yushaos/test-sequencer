@@ -15,7 +15,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-class TestScript:
+class CPUStressTest1:
     def __init__(self, config_path):
         self.config_path = config_path
         self.config = self.load_config()
@@ -83,5 +83,5 @@ if __name__ == "__main__":
     config_path = sys.argv[1] if len(sys.argv) > 1 else "stress_config1.json"
     
     # Create and run stress test
-    stress_test = TestScript(config_path)
+    stress_test = CPUStressTest1(config_path)
     stress_test.run()
