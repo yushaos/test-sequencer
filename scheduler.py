@@ -40,19 +40,26 @@ class Scheduler:
             # Handle method type - call method from class instance
             if step.get('call_type') == 'method':
                 class_obj = getattr(module, step['class_name'])
-                instance = class_obj()
+                # Initialize class with config_path from arguments
+                if step.get('argument') and isinstance(step['argument'], dict):
+                    config_path = step['argument'].get('config_path')
+                    instance = class_obj(config_path) if config_path else class_obj()
+                else:
+                    instance = class_obj()
+                
                 func = getattr(instance, step['function_name'])
+                # For instance methods, don't pass the argument again
+                result = func()
             
             # Handle function type - call function directly
             else:
                 func = getattr(module, step['function_name'])
-            
-            # Execute with argument if provided
-            if step.get('argument'):
-                result = func(step['argument'])
-            else:
-                result = func()
-                
+                # Execute with argument if provided
+                if step.get('argument'):
+                    result = func(step['argument'])
+                else:
+                    result = func()
+                    
             return result if result is not None else True
             
         except Exception as e:

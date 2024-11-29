@@ -25,10 +25,12 @@
 			"enable": true,
 			"call_type": "method",
 			"step_location": "C:\\Users\\yusha\\Desktop\\test sequencer\\demo script\\schedule code\\schedule_demo_code.py",
-			"function_name": "load_config",
 			"class_name": "TestScript",
+			"function_name": "load_config",
 			"Wait_condition": "wait",
-			"argument": "C:\\Users\\yusha\\Desktop\\test sequencer\\demo script\\schedule code\\schedule_config.json"
+			"argument": {
+				"config_path": "C:\\Users\\yusha\\Desktop\\test sequencer\\demo script\\schedule code\\schedule_config.json"
+			}
 		}
 	],
 	"test": [
