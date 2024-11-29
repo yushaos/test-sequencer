@@ -152,19 +152,18 @@ class TestSequencer(TestSequencerUI):
                 msg_type, data = self.result_queue.get_nowait()
                 
                 if msg_type == 'section':
-                    self.current_section = data  # Add this line
+                    self.current_section = data
                     if data.lower() == 'test':
-                        self.clear_test_details()  # Clear table when test section starts
+                        self.clear_test_details()
                     self.status_box.add_section_status(data)
                 
                 elif msg_type == 'step_start':
                     self.status_box.add_status(f"Starting step: {data['name']}")
-                    self.highlight_current_step(data['list_index'])  # Use index instead of name
+                    self.highlight_current_step(data['list_index'])
                     self.status_bar.update_progress(data['current'], data['total'])
                 
                 elif msg_type == 'step_complete':
                     if self.current_section.lower() == 'test':
-                        # Update test details with step duration
                         duration = f"{data.get('duration', 0):.2f}s"
                         self.update_test_details(data['name'], duration)
                     self.status_box.add_status(f"Completed step: {data['name']}")
@@ -176,11 +175,13 @@ class TestSequencer(TestSequencerUI):
                 
                 elif msg_type == 'complete':
                     self.status_box.add_status("Sequence completed successfully")
-                    self.cleanup_process()
+                    self.sequence_running = False
+                    self.reset_gui_state()
                 
                 elif msg_type == 'end':
                     self.status_box.add_status("Sequence ended early")
-                    self.cleanup_process()
+                    self.sequence_running = False
+                    self.reset_gui_state()
 
         except queue.Empty:
             pass
@@ -362,6 +363,22 @@ class TestSequencer(TestSequencerUI):
             self.end_sequence_event.set()
             self.status_box.add_status("Initiating sequence termination...")
             self.end_sequence_btn.setEnabled(False)  # Prevent multiple clicks
+
+    def reset_gui_state(self):
+        """Reset GUI to initial state"""
+        self.cleanup_process()
+        self.run_btn.setEnabled(True)
+        self.end_sequence_btn.setEnabled(False)
+        self.load_sequence_btn.setEnabled(True)
+        self.status_bar.set_complete()
+        self.reset_step_highlights()
+        
+        # Keep the last status and error messages visible
+        # but clear the test details table
+        self.clear_test_details()
+        
+        # Process any pending events
+        QApplication.processEvents()
 
 def main():
     app = QApplication(sys.argv)
