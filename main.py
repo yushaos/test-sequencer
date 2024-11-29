@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (
     QApplication, QTableWidgetItem, QFileDialog, QMenu,
     QListWidgetItem
 )
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, pyqtSignal, QObject
 from PyQt5.QtGui import QBrush, QColor
 from gui.test_sequencer_ui import TestSequencerUI
 from scheduler import Scheduler
@@ -19,6 +19,15 @@ from multiprocessing import Process, Queue
 import queue
 import time
 from sequence_runner import run_steps_worker
+from threading import Thread, Event
+from queue import Empty
+import signal
+
+# Add this new class
+class EndSequenceSignals(QObject):
+    sequence_terminated = pyqtSignal()
+    status_update = pyqtSignal(str)
+    error_update = pyqtSignal(str)
 
 class TestSequencer(TestSequencerUI):
     def __init__(self):
@@ -47,6 +56,16 @@ class TestSequencer(TestSequencerUI):
 
         self.current_section = ""
         self.connect_signals()
+
+        self.end_sequence_event = Event()
+        self.end_sequence_thread = None
+        self.sequence_running = False
+
+        # Add this after other initializations
+        self.end_sequence_signals = EndSequenceSignals()
+        self.end_sequence_signals.sequence_terminated.connect(self.on_sequence_terminated)
+        self.end_sequence_signals.status_update.connect(self.status_box.add_status)
+        self.end_sequence_signals.error_update.connect(self.error_box.add_error_message)
 
     def connect_signals(self):
         self.prev_sequence_btn.clicked.connect(self.show_previous_sequences)
@@ -113,12 +132,15 @@ class TestSequencer(TestSequencerUI):
         self.error_box.clear()
         self.reset_step_highlights()
         
-        # Disable run button, enable end button
         self.run_btn.setEnabled(False)
         self.end_sequence_btn.setEnabled(True)
-        self.load_sequence_btn.setEnabled(False)  # Also disable loading while running
-
-        # Start the process worker with just the steps data
+        self.load_sequence_btn.setEnabled(False)
+        
+        self.end_sequence_event.clear()
+        self.sequence_running = True
+        self.end_sequence_thread = Thread(target=self.monitor_end_sequence, daemon=True)
+        self.end_sequence_thread.start()
+        
         steps_data = self.scheduler.get_steps()
         self.step_process = Process(target=run_steps_worker, 
                                   args=(steps_data, self.step_queue, self.result_queue))
@@ -163,45 +185,81 @@ class TestSequencer(TestSequencerUI):
         except queue.Empty:
             pass
 
-    def cleanup_process(self):
-        if self.step_process:
-            self.step_process.terminate()
-            self.step_process.join()
-            self.step_process = None
-        
-        # Reset GUI to initial state
+    def monitor_end_sequence(self):
+        """Separate thread to monitor and handle end sequence request"""
+        while self.sequence_running:
+            if self.end_sequence_event.is_set():
+                try:
+                    if self.step_process and self.step_process.is_alive():
+                        # Send termination signal
+                        self.end_sequence_signals.status_update.emit("Terminating sequence...")
+                        
+                        # Clear queues first
+                        self._clear_queues()
+                        
+                        # Try graceful termination first
+                        os.kill(self.step_process.pid, signal.SIGTERM)
+                        self.step_process.join(timeout=1.0)
+                        
+                        # If still alive, force kill
+                        if self.step_process.is_alive():
+                            os.kill(self.step_process.pid, signal.SIGKILL)
+                            self.step_process.join(timeout=1.0)
+                    
+                    # Signal completion
+                    self.end_sequence_signals.sequence_terminated.emit()
+                    break
+                    
+                except Exception as e:
+                    self.end_sequence_signals.error_update.emit(f"Error ending sequence: {str(e)}")
+                finally:
+                    self.sequence_running = False
+                    
+            time.sleep(0.1)
+
+    def on_sequence_terminated(self):
+        """Handle sequence termination in the main thread"""
+        self.cleanup_process()
+        self.status_box.add_status("Sequence terminated")
         self.run_btn.setEnabled(True)
         self.end_sequence_btn.setEnabled(False)
         self.load_sequence_btn.setEnabled(True)
         self.status_bar.set_complete()
         self.reset_step_highlights()
-        
-        # Keep sequence loaded but clear status
-        self.error_box.clear()
-        self.status_box.clear()
 
-    def end_sequence(self):
-        if self.step_process and self.step_process.is_alive():
+    def _clear_queues(self):
+        """Clear both step and result queues"""
+        try:
+            while True:
+                self.step_queue.get_nowait()
+        except Empty:
+            pass
+            
+        try:
+            while True:
+                self.result_queue.get_nowait()
+        except Empty:
+            pass
+
+    def cleanup_process(self):
+        """Clean up process and reset state"""
+        self.sequence_running = False
+        
+        if self.step_process:
             try:
-                # Clear the queue first
-                while not self.step_queue.empty():
-                    self.step_queue.get_nowait()
-                # Put the end signal
-                self.step_queue.put('end')
-                self.status_box.add_status("Ending sequence early...")
-                
-                # Wait a short time for process to end
-                self.step_process.join(timeout=1.0)
-                
-                # Force terminate if still running
                 if self.step_process.is_alive():
                     self.step_process.terminate()
-                    self.step_process.join()
-                
-            except Exception as e:
-                print(f"Error ending sequence: {e}")
+                    self.step_process.join(timeout=1.0)
+            except:
+                pass
             finally:
-                self.cleanup_process()
+                self.step_process = None
+        
+        # Clear queues
+        self._clear_queues()
+        
+        # Reset GUI state
+        QApplication.processEvents()  # Process any pending events
 
     def show_result_files_menu(self):
         menu = self.result_files_handler.show_result_files_menu(self)
@@ -297,6 +355,13 @@ class TestSequencer(TestSequencerUI):
 
     def clear_test_details(self):
         self.table_placeholder.setRowCount(0)
+
+    def end_sequence(self):
+        """Initiate sequence termination"""
+        if self.sequence_running:
+            self.end_sequence_event.set()
+            self.status_box.add_status("Initiating sequence termination...")
+            self.end_sequence_btn.setEnabled(False)  # Prevent multiple clicks
 
 def main():
     app = QApplication(sys.argv)

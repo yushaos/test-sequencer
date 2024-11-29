@@ -56,6 +56,7 @@ class TestScript:
             self.execute_step(step)
         
         logger.info("Test script execution completed")
+        return True
 
 if __name__ == "__main__":
      # Allow config file path to be specified as command line argument
