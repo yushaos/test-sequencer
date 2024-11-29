@@ -112,8 +112,11 @@ class TestSequencer(TestSequencerUI):
         self.status_box.clear()
         self.error_box.clear()
         self.reset_step_highlights()
+        
+        # Disable run button, enable end button
         self.run_btn.setEnabled(False)
         self.end_sequence_btn.setEnabled(True)
+        self.load_sequence_btn.setEnabled(False)  # Also disable loading while running
 
         # Start the process worker with just the steps data
         steps_data = self.scheduler.get_steps()
@@ -166,15 +169,16 @@ class TestSequencer(TestSequencerUI):
             self.step_process.join()
             self.step_process = None
         
-        # Reset GUI to startup state
+        # Reset GUI to initial state
         self.run_btn.setEnabled(True)
         self.end_sequence_btn.setEnabled(False)
+        self.load_sequence_btn.setEnabled(True)
         self.status_bar.set_complete()
         self.reset_step_highlights()
-        self.sequence_list.clear()  # Clear the sequence list
-        self.error_box.clear()      # Clear error messages
-        self.status_box.clear()     # Clear status messages
-        self.run_btn.setEnabled(False)  # Disable run button until new sequence is loaded
+        
+        # Keep sequence loaded but clear status
+        self.error_box.clear()
+        self.status_box.clear()
 
     def end_sequence(self):
         if self.step_process and self.step_process.is_alive():
@@ -184,7 +188,7 @@ class TestSequencer(TestSequencerUI):
                     self.step_queue.get_nowait()
                 # Put the end signal
                 self.step_queue.put('end')
-                self.status_list.addItem("Ending sequence early...")
+                self.status_box.add_status("Ending sequence early...")
                 
                 # Wait a short time for process to end
                 self.step_process.join(timeout=1.0)
@@ -197,7 +201,7 @@ class TestSequencer(TestSequencerUI):
             except Exception as e:
                 print(f"Error ending sequence: {e}")
             finally:
-                self.cleanup_process()  # Always cleanup, even if there's an error
+                self.cleanup_process()
 
     def show_result_files_menu(self):
         menu = self.result_files_handler.show_result_files_menu(self)

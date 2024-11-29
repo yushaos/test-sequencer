@@ -55,5 +55,20 @@ here is explanation on what each button do:
 	-then execute steps in post section. 
 -sequencer should have a separate file for scheduler, module will handle from reading the config file, all the timing specific channels or modules or signals. 
 line them up per their scheduled sequence time, and during the main loop "during", it will have clear idea on what happens at what time, and execute it when timer has reached. 
+
+
+----------------------------------------------
+i want to make change to the @scheduler.py and @sequence_runner.py code to handle to following config file changes in sequencer config json file. 
+on "wait_condition", there are few possible value: 
+"Wait_condition": {
+				"type": can be 
+"boolean_return", - function if return true, means function is done, go to next step, if false, indicate this step returns error. 
+"any_return", - if function returns anything, indicatint function executed good. proceed. 
+"hard_wait", - hard code a wait timer in sec for this function. 
+"no_wait", - don't wait for this function, proceed to next step
+				"timeout_sec": 5 - this is max timeout wait time for this function to execute. if function did not indicate success of execution complete. throw error. 
+
+			},
+
 	
 
