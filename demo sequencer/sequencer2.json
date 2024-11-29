@@ -32,7 +32,7 @@
 			"call_type": "method",
 			"step_location": "C:\\Users\\yusha\\Desktop\\test sequencer\\demo script\\schedule code\\schedule_demo_code.py",
 			"class_name": "TestScript",
-			"function_name": "load_config",
+			"function_name": "__init__",
 			"Wait_condition": {
 				"type": "any_return",
 				"timeout_sec": 5
