@@ -15,16 +15,16 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class TestScript:
-    def __init__(self):
-        self.config = None
-
-    def load_config(self, config_path):
+    def __init__(self, config_path):
+        self.config_path = config_path
+        self.config = self.load_config()
+        
+    def load_config(self):
         """Load the configuration from JSON file"""
         try:
-            with open(config_path, 'r') as f:
+            with open(self.config_path, 'r') as f:
                 config = json.load(f)
             logger.info("Successfully loaded configuration file")
-            self.config = config
             return config
         except Exception as e:
             logger.error(f"Error loading configuration file: {str(e)}")
@@ -58,10 +58,9 @@ class TestScript:
         logger.info("Test script execution completed")
 
 if __name__ == "__main__":
-    # Allow config file path to be specified as command line argument
+     # Allow config file path to be specified as command line argument
     config_path = sys.argv[1] if len(sys.argv) > 1 else "schedule_config.json"
     
     # Create and run test script
-    test_script = TestScript()
-    test_script.load_config(config_path)
+    test_script = TestScript(config_path)
     test_script.run()
