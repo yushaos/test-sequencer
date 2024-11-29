@@ -7,7 +7,10 @@
 			"step_location": "C:\\Users\\yusha\\Desktop\\test sequencer\\demo script\\hello-world-python.py",
 			"function_name": "run",
 			"class_name": "",
-			"Wait_condition": "wait",
+			"Wait_condition": {
+				"type": "boolean_return",
+				"timeout_sec": 5
+			},			
 			"argument": ""
 		},
 		{
@@ -17,7 +20,10 @@
 			"step_location": "C:\\Users\\yusha\\Desktop\\test sequencer\\demo script\\wait_3_seconds.py",
 			"function_name": "",
 			"class_name": "",
-			"Wait_condition": "wait",
+			"Wait_condition": {
+				"type": "boolean_return",
+				"timeout_sec": 5
+			},		
 			"argument": ""
 		},
 		{
@@ -27,7 +33,10 @@
 			"step_location": "C:\\Users\\yusha\\Desktop\\test sequencer\\demo script\\schedule code\\schedule_demo_code.py",
 			"class_name": "TestScript",
 			"function_name": "load_config",
-			"Wait_condition": "wait",
+			"Wait_condition": {
+				"type": "any_return",
+				"timeout_sec": 5
+			},		
 			"argument": {
 				"config_path": "C:\\Users\\yusha\\Desktop\\test sequencer\\demo script\\schedule code\\schedule_config.json"
 			}
