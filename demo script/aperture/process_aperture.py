@@ -1,20 +1,13 @@
 from nptdms import TdmsFile, TdmsWriter, ChannelObject
 import numpy as np
 from datetime import datetime
+import time
 import os
 
 def aperture(x, y, y_threshold=0.3, min_sample_rate=0.001):
     """
     Process data using aperture algorithm
-    Args:
-        x: x values array
-        y: y values array
-        y_threshold: voltage threshold (default 0.3V)
-        min_sample_rate: minimum time between points (default 0.001s / 1kHz)
-    Returns:
-        x_out, y_out: filtered arrays
     """
-    # Pre-allocate max possible size
     x_out = np.zeros_like(x)
     y_out = np.zeros_like(y)
     
@@ -22,25 +15,26 @@ def aperture(x, y, y_threshold=0.3, min_sample_rate=0.001):
     x_out[0] = x[0]
     y_out[0] = y[0]
     
-    idx = 0  # Output array index
+    idx = 0
     last_kept_x = x[0]
     last_kept_y = y[0]
     
-    for i in range(1, len(x)):
-        # Check if time difference exceeds minimum sample rate
+    for i in range(1, len(x)-1):
         time_diff = x[i] - last_kept_x
-        # Check if voltage difference exceeds threshold
         volt_diff = abs(y[i] - last_kept_y)
         
-        if time_diff >= min_sample_rate or volt_diff >= y_threshold:
+        # Only keep point if EITHER:
+        # 1. Time difference exceeds min_sample_rate AND voltage changed significantly
+        # 2. Voltage difference exceeds threshold
+        if (time_diff >= min_sample_rate and volt_diff > 0) or volt_diff >= y_threshold:
             idx += 1
             x_out[idx] = x[i]
             y_out[idx] = y[i]
             last_kept_x = x[i]
             last_kept_y = y[i]
     
-    # Always keep last point if not already kept
-    if x_out[idx] != x[-1]:
+    # Always keep last point
+    if x[-1] != x_out[idx]:
         idx += 1
         x_out[idx] = x[-1]
         y_out[idx] = y[-1]
@@ -48,9 +42,9 @@ def aperture(x, y, y_threshold=0.3, min_sample_rate=0.001):
     return x_out[:idx+1], y_out[:idx+1]
 
 def process_data(filename="aperture_demo_xy.tdms", chunk_size=100000):
-    """
-    Process TDMS file in chunks and save filtered data
-    """
+    start_time = time.perf_counter()
+    aperture_total_time = 0
+    
     with TdmsFile.open(filename) as tdms_file:
         # Get the first group and its channels
         group = tdms_file.groups()[0]
@@ -71,7 +65,10 @@ def process_data(filename="aperture_demo_xy.tdms", chunk_size=100000):
             x_chunk = x_channel[start_idx:end_idx]
             y_chunk = y_channel[start_idx:end_idx]
             
+            chunk_start = time.perf_counter()
             x_out, y_out = aperture(x_chunk, y_chunk)
+            aperture_total_time += time.perf_counter() - chunk_start
+            
             x_filtered.extend(x_out)
             y_filtered.extend(y_out)
     
@@ -93,7 +90,9 @@ def process_data(filename="aperture_demo_xy.tdms", chunk_size=100000):
         )
         tdms_writer.write_segment([x_channel_filtered, y_channel_filtered])
     
-    # Add statistics
+    # Statistics
+    total_time = time.perf_counter() - start_time
+    avg_aperture_time = aperture_total_time / chunks
     original_points = total_points
     filtered_points = len(x_filtered)
     reduction_percent = ((original_points - filtered_points) / original_points) * 100
@@ -102,6 +101,10 @@ def process_data(filename="aperture_demo_xy.tdms", chunk_size=100000):
     print(f"Original points: {original_points:,}")
     print(f"Filtered points: {filtered_points:,}")
     print(f"Data reduction: {reduction_percent:.2f}%")
+    print(f"Number of chunks processed: {chunks}")
+    print(f"Average aperture processing time: {avg_aperture_time:.3f} seconds per chunk")
+    print(f"Total processing time: {total_time:.3f} seconds")
+    print(f"File I/O time: {(total_time - aperture_total_time):.3f} seconds")
     
     return output_filename
 
