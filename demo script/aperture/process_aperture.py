@@ -4,14 +4,14 @@ from datetime import datetime
 import time
 import os
 
-def aperture(x, y, y_threshold=0.5, min_sample_rate=0.001):
+def aperture(x, y, y_threshold=0.5, min_sample_rate=0.001, burst_points=50):
     """
     Process data using aperture algorithm
     """
     x_out = np.zeros_like(x, dtype=np.float32)
     y_out = np.zeros_like(y, dtype=np.float32)
     
-    # Convert inputs to float32 if they aren't already
+    # Convert inputs to float32
     x = x.astype(np.float32)
     y = y.astype(np.float32)
     y_threshold = np.float32(y_threshold)
@@ -24,20 +24,28 @@ def aperture(x, y, y_threshold=0.5, min_sample_rate=0.001):
     idx = 0
     last_kept_x = x[0]
     last_kept_y = y[0]
+    burst_remaining = 0
     
     for i in range(1, len(x)-1):
         time_diff = x[i] - last_kept_x
         volt_diff = abs(y[i] - last_kept_y)
         
-        # Only keep point if EITHER:
-        # 1. Time difference exceeds min_sample_rate AND voltage changed significantly
-        # 2. Voltage difference exceeds threshold
-        if time_diff >= min_sample_rate or volt_diff >= y_threshold:
+        # Keep point if:
+        # 1. Time difference exceeds min_sample_rate OR
+        # 2. Voltage difference exceeds threshold OR
+        # 3. In burst mode after voltage threshold exceeded
+        if time_diff >= min_sample_rate or volt_diff >= y_threshold or burst_remaining > 0:
             idx += 1
             x_out[idx] = x[i]
             y_out[idx] = y[i]
             last_kept_x = x[i]
             last_kept_y = y[i]
+            
+            # Start burst mode if voltage threshold exceeded
+            if volt_diff >= y_threshold:
+                burst_remaining = burst_points
+            elif burst_remaining > 0:
+                burst_remaining -= 1
     
     # Always keep last point
     if x[-1] != x_out[idx]:
