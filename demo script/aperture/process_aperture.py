@@ -4,12 +4,18 @@ from datetime import datetime
 import time
 import os
 
-def aperture(x, y, y_threshold=0.3, min_sample_rate=0.001):
+def aperture(x, y, y_threshold=0.5, min_sample_rate=0.001):
     """
     Process data using aperture algorithm
     """
-    x_out = np.zeros_like(x)
-    y_out = np.zeros_like(y)
+    x_out = np.zeros_like(x, dtype=np.float32)
+    y_out = np.zeros_like(y, dtype=np.float32)
+    
+    # Convert inputs to float32 if they aren't already
+    x = x.astype(np.float32)
+    y = y.astype(np.float32)
+    y_threshold = np.float32(y_threshold)
+    min_sample_rate = np.float32(min_sample_rate)
     
     # Always keep first point
     x_out[0] = x[0]
@@ -26,7 +32,7 @@ def aperture(x, y, y_threshold=0.3, min_sample_rate=0.001):
         # Only keep point if EITHER:
         # 1. Time difference exceeds min_sample_rate AND voltage changed significantly
         # 2. Voltage difference exceeds threshold
-        if (time_diff >= min_sample_rate and volt_diff > 0) or volt_diff >= y_threshold:
+        if time_diff >= min_sample_rate or volt_diff >= y_threshold:
             idx += 1
             x_out[idx] = x[i]
             y_out[idx] = y[i]
@@ -46,10 +52,13 @@ def process_data(filename="aperture_demo_xy.tdms", chunk_size=100000):
     aperture_total_time = 0
     
     with TdmsFile.open(filename) as tdms_file:
-        # Get the first group and its channels
         group = tdms_file.groups()[0]
-        x_channel = group.channels()[0]
-        y_channel = group.channels()[1]
+        # Store channel objects first to keep their names
+        x_chan = group.channels()[0]
+        y_chan = group.channels()[1]
+        # Then get their data as float32
+        x_channel = x_chan[:].astype(np.float32)
+        y_channel = y_chan[:].astype(np.float32)
         
         # Process data in chunks
         total_points = len(x_channel)
@@ -80,12 +89,12 @@ def process_data(filename="aperture_demo_xy.tdms", chunk_size=100000):
     with TdmsWriter(output_filename) as tdms_writer:
         x_channel_filtered = ChannelObject(
             group.name, 
-            x_channel.name, 
+            x_chan.name, 
             np.array(x_filtered)
         )
         y_channel_filtered = ChannelObject(
             group.name, 
-            y_channel.name, 
+            y_chan.name, 
             np.array(y_filtered)
         )
         tdms_writer.write_segment([x_channel_filtered, y_channel_filtered])
