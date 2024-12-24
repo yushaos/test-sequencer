@@ -1,0 +1,26 @@
+{
+  "often use": [
+    {
+      "name": "test sequencer folder",
+      "type": "explorer",
+      "path": "C:\\Users\\yusha\\Desktop\\test sequencer\\"
+    },
+    {
+      "name": "test sequencer ui",
+      "type": "python",
+      "path": "C:\\Users\\yusha\\Desktop\\test sequencer\\gui\\test_sequencer_ui.py"
+    },
+    {
+      "name": "TDMS viewer",
+      "type": "exe",
+      "path": "C:\\Users\\yusha\\Desktop\\TDMS Viewer.exe"
+    }
+  ],
+  "less use": [
+    {
+      "name": "demo script folder",
+      "type": "explorer",
+      "path": "C:\\Users\\yusha\\Desktop\\test sequencer\\demo script\\"
+    }
+  ]
+}
