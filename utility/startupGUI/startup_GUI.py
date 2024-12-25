@@ -10,6 +10,10 @@ class StartupGUI:
         self.root = root
         self.root.title("Startup GUI")
         
+        # Configuration variables
+        self.BUTTON_FONT_SIZE = 15  # Adjust this value to change font size
+        self.BUTTON_WIDTH = 15      # Characters per line for wrapping
+        
         # Load config
         with open('startupGUI_config.json', 'r') as f:
             self.config = json.load(f)
@@ -17,6 +21,17 @@ class StartupGUI:
         # Create notebook for tabs
         self.notebook = ttk.Notebook(root)
         self.notebook.pack(expand=True, fill='both', padx=10, pady=10)
+        
+        # Create custom style
+        self.style = ttk.Style()
+        self.style.configure(
+            'Fixed.TButton',
+            width=self.BUTTON_WIDTH,
+            wraplength=120,  # Pixels for text wrapping
+            font=('TkDefaultFont', self.BUTTON_FONT_SIZE),
+            justify='center',  # Center align text
+            anchor='center'    # Center the text block in button
+        )
         
         # Create tabs and buttons
         self.create_tabs()
@@ -33,10 +48,6 @@ class StartupGUI:
             for i in range(5):  # 5 columns
                 tab_frame.grid_columnconfigure(i, weight=1)
             
-            # Create style for fixed-size buttons
-            button_style = ttk.Style()
-            button_style.configure('Fixed.TButton', width=15)  # Set fixed width in characters
-            
             # Create buttons
             for idx, item in enumerate(items):
                 row = idx // 5
@@ -44,11 +55,11 @@ class StartupGUI:
                 
                 btn = ttk.Button(
                     tab_frame,
-                    text=item['name'],
+                    text=self.wrap_text(item['name']),
                     command=lambda i=item: self.launch_item(i),
-                    style='Fixed.TButton'  # Apply the fixed-size style
+                    style='Fixed.TButton'
                 )
-                btn.grid(row=row, column=col, padx=5, pady=5, sticky='nsew', ipadx=20, ipady=10)  # Add internal padding
+                btn.grid(row=row, column=col, padx=5, pady=5, sticky='nsew', ipadx=20, ipady=10)
     
     def launch_item(self, item):
         path = item['path']
@@ -63,6 +74,28 @@ class StartupGUI:
             
         elif item_type == 'exe':
             subprocess.Popen([path])
+
+    def wrap_text(self, text):
+        """Helper function to add newlines for long text"""
+        words = text.split()
+        lines = []
+        current_line = []
+        
+        for word in words:
+            current_line.append(word)
+            if len(' '.join(current_line)) > self.BUTTON_WIDTH:
+                if len(current_line) > 1:
+                    current_line.pop()
+                    lines.append(' '.join(current_line))
+                    current_line = [word]
+                else:
+                    lines.append(word)
+                    current_line = []
+        
+        if current_line:
+            lines.append(' '.join(current_line))
+        
+        return '\n'.join(lines)
 
 def main():
     root = tk.Tk()
