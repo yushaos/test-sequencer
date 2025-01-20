@@ -34,6 +34,12 @@ for req in config["test_requirements"]:
                              time_end=req["time_end"],
                              low_limit=req["low_limit"],
                              high_limit=req["high_limit"])
+    elif req["func_name"] == "min_check":
+        result = dpf.min_check(x_data, y_data,
+                             time_begin=req["time_begin"],
+                             time_end=req["time_end"],
+                             low_limit=req["low_limit"],
+                             high_limit=req["high_limit"])
         
-        # Print result with requirement ID
-        print(f"REQ {req['req_id']}: {'PASS' if result else 'FAIL'}")
+    # Print result with requirement ID
+    print(f"REQ {req['req_id']}: {'PASS' if result else 'FAIL'}")
