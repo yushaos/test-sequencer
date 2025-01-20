@@ -1,0 +1,15 @@
+{
+    "test_requirements": [
+        {
+            "req_id": "REQ001",
+			"Group": "Group1",
+            "channel_name": "A1",
+            "req_level": "Critical",
+            "func_name": "max_check",
+            "low_limit": 0.5,
+            "high_limit": 10.0,
+            "time_begin": 2.0,
+            "time_end": 5.0
+        }
+    ]
+}
