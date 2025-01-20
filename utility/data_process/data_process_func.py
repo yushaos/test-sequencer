@@ -1,6 +1,6 @@
-def max_check(x_data, y_data, time_begin=None, time_end=None, low_limit=None, high_limit=None):
+def max_check(x_data, y_data, time_begin=None, time_end=None):
     """
-    Find max value in specified range and check if it's within limits
+    Find max value in specified range
     """
     # Find indices for the specified time range
     start_idx = 0
@@ -17,17 +17,11 @@ def max_check(x_data, y_data, time_begin=None, time_end=None, low_limit=None, hi
     max_idx = start_idx + y_slice.argmax()
     x_at_max = x_data[max_idx]
     
-    # Check if value is within limits
-    if low_limit is not None and max_value < low_limit:
-        return False, max_value, x_at_max
-    if high_limit is not None and max_value > high_limit:
-        return False, max_value, x_at_max
-    
-    return True, max_value, x_at_max
+    return max_value, x_at_max
 
-def min_check(x_data, y_data, time_begin=None, time_end=None, low_limit=None, high_limit=None):
+def min_check(x_data, y_data, time_begin=None, time_end=None):
     """
-    Find min value in specified range and check if it's within limits
+    Find min value in specified range
     """
     # Find indices for the specified time range
     start_idx = 0
@@ -44,17 +38,11 @@ def min_check(x_data, y_data, time_begin=None, time_end=None, low_limit=None, hi
     min_idx = start_idx + y_slice.argmin()
     x_at_min = x_data[min_idx]
     
-    # Check if value is within limits
-    if low_limit is not None and min_value < low_limit:
-        return False, min_value, x_at_min
-    if high_limit is not None and min_value > high_limit:
-        return False, min_value, x_at_min
-    
-    return True, min_value, x_at_min
+    return min_value, x_at_min
 
-def average_check(x_data, y_data, time_begin=None, time_end=None, low_limit=None, high_limit=None):
+def average_check(x_data, y_data, time_begin=None, time_end=None):
     """
-    Find average value in specified range and check if it's within limits
+    Find average value in specified range
     """
     # Find indices for the specified time range
     start_idx = 0
@@ -69,13 +57,7 @@ def average_check(x_data, y_data, time_begin=None, time_end=None, low_limit=None
     data_slice = y_data[start_idx:end_idx]
     avg_value = sum(data_slice) / len(data_slice)
     
-    # Check if value is within limits
-    if low_limit is not None and avg_value < low_limit:
-        return False, avg_value
-    if high_limit is not None and avg_value > high_limit:
-        return False, avg_value
-    
-    return True, avg_value
+    return avg_value
 
 def threshold_cross(x_data, y_data, threshold, mode="rise", time_begin=None, time_end=None):
     """

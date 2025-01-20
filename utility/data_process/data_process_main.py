@@ -53,23 +53,30 @@ for req in config["test_requirements"]:
         # Call the specified function with parameters from config
         result = None
         if req["func_name"] == "max":
-            result = dpf.max_check(x_data, y_data,
-                                 time_begin=req["time_begin"],
-                                 time_end=req["time_end"],
-                                 low_limit=req["low_limit"],
-                                 high_limit=req["high_limit"])
+            max_value, x_at_max = dpf.max_check(x_data, y_data,
+                                              time_begin=req["time_begin"],
+                                              time_end=req["time_end"])
+            pass_fail, value = dpf.result_check(max_value, 
+                                              low_limit=req["low_limit"],
+                                              high_limit=req["high_limit"])
+            result = (pass_fail, value, x_at_max)
+            
         elif req["func_name"] == "min":
-            result = dpf.min_check(x_data, y_data,
-                                 time_begin=req["time_begin"],
-                                 time_end=req["time_end"],
-                                 low_limit=req["low_limit"],
-                                 high_limit=req["high_limit"])
+            min_value, x_at_min = dpf.min_check(x_data, y_data,
+                                              time_begin=req["time_begin"],
+                                              time_end=req["time_end"])
+            pass_fail, value = dpf.result_check(min_value,
+                                              low_limit=req["low_limit"],
+                                              high_limit=req["high_limit"])
+            result = (pass_fail, value, x_at_min)
+            
         elif req["func_name"] == "average":
-            result = dpf.average_check(x_data, y_data,
-                                     time_begin=req["time_begin"],
-                                     time_end=req["time_end"],
-                                     low_limit=req["low_limit"],
-                                     high_limit=req["high_limit"])
+            avg_value = dpf.average_check(x_data, y_data,
+                                        time_begin=req["time_begin"],
+                                        time_end=req["time_end"])
+            result = dpf.result_check(avg_value,
+                                    low_limit=req["low_limit"],
+                                    high_limit=req["high_limit"])
         elif req["func_name"] == "threshold_cross":
             cross_time = dpf.threshold_cross(x_data, y_data,
                                            threshold=req["threshold"],
