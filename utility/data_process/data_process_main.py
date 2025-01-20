@@ -25,6 +25,9 @@ def print_result(req_id, func_name, result_data):
         print(f"REQ {req_id}: {status} (Average: {result_data[1]:.3f})")
     elif func_name == "rise":
         print(f"REQ {req_id}: {status} (Rise Time: {result_data[1]:.3f}s)")
+    elif func_name == "threshold_cross":
+        time_str = f"Time: {result_data[1]:.3f}s" if result_data[1] is not None else "No crossing found"
+        print(f"REQ {req_id}: {status} ({time_str})")
     else:
         print(f"REQ {req_id}: {status}")
 
@@ -71,6 +74,14 @@ for req in config["test_requirements"]:
                              threshold=req["threshold"],
                              percent_low=req["percent_low"],
                              percent_high=req["percent_high"])
+    elif req["func_name"] == "threshold_cross":
+        result = dpf.threshold_cross(x_data, y_data,
+                                   threshold=req["threshold"],
+                                   mode=req["mode"],
+                                   time_begin=req["time_begin"],
+                                   time_end=req["time_end"],
+                                   low_limit=req["low_limit"],
+                                   high_limit=req["high_limit"])
         
     # Print result with requirement ID and additional info
     print_result(req['req_id'], req['func_name'], result)

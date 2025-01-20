@@ -38,14 +38,26 @@
 			"Group": "Group1",
             "channel_name": "A1",
             "req_level": "Critical",
-            "func_name": "rise",
-			"low_limit": 0,
-            "high_limit": 0.1,
-			"threshold": 1,
-			"percent_low": 0.1,
-			"percent_high": 0.9,
-            "time_begin": 0.9,
-            "time_end": 1.9
+            "func_name": "threshold_cross",
+			"mode": "rise",
+			"low_limit": 9.01,
+            "high_limit": 9.05,
+			"threshold": 7,
+            "time_begin": null,
+            "time_end": null
+        },
+		{
+            "req_id": "REQ005",
+			"Group": "Group1",
+            "channel_name": "A1",
+            "req_level": "Critical",
+            "func_name": "threshold_cross",
+			"mode": "fall",
+			"low_limit": 9.05,
+            "high_limit": 9.07,
+			"threshold": 7,
+            "time_begin": null,
+            "time_end": null
         }
     ]
 }

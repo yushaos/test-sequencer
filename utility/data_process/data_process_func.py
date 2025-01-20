@@ -77,12 +77,9 @@ def average_check(x_data, y_data, time_begin=None, time_end=None, low_limit=None
     
     return True, avg_value
 
-def rise_time(x_data, y_data, time_begin=None, time_end=None, low_limit=None, high_limit=None, 
-              threshold=None, percent_low=0.1, percent_high=0.9):
+def threshold_cross(x_data, y_data, threshold, mode="rise", time_begin=None, time_end=None, low_limit=None, high_limit=None):
     """
-    Calculate rise time between percent_low and percent_high of the signal
-    Uses linear interpolation to find precise timing points
-    Returns True if rise time is within limits
+    Find time when signal crosses threshold
     """
     # Find indices for the specified time range
     start_idx = 0
@@ -93,52 +90,36 @@ def rise_time(x_data, y_data, time_begin=None, time_end=None, low_limit=None, hi
     if time_end is not None:
         end_idx = next((i for i, x in enumerate(x_data) if x > time_end), len(x_data))
     
-    # Get data slice for analysis
-    y_slice = y_data[start_idx:end_idx]
+    # Get data slice
     x_slice = x_data[start_idx:end_idx]
+    y_slice = y_data[start_idx:end_idx]
     
-    # Check threshold requirement
-    if threshold is not None:
-        max_val = max(y_slice)
-        if max_val < threshold:
-            return False, 0
+    # Find crossing
+    for i in range(1, len(y_slice)):
+        if mode == "rise" and y_slice[i-1] <= threshold < y_slice[i]:
+            # Linear interpolation to get precise crossing time
+            t_cross = x_slice[i-1] + (threshold - y_slice[i-1]) * \
+                     (x_slice[i] - x_slice[i-1]) / (y_slice[i] - y_slice[i-1])
+            
+            # Check limits
+            if low_limit is not None and t_cross < low_limit:
+                return False, t_cross
+            if high_limit is not None and t_cross > high_limit:
+                return False, t_cross
+            return True, t_cross
+            
+        elif mode == "fall" and y_slice[i-1] >= threshold > y_slice[i]:
+            # Linear interpolation to get precise crossing time
+            t_cross = x_slice[i-1] + (threshold - y_slice[i-1]) * \
+                     (x_slice[i] - x_slice[i-1]) / (y_slice[i] - y_slice[i-1])
+            
+            # Check limits
+            if low_limit is not None and t_cross < low_limit:
+                return False, t_cross
+            if high_limit is not None and t_cross > high_limit:
+                return False, t_cross
+            return True, t_cross
     
-    # Find min and max values for percentage calculations
-    min_val = min(y_slice)
-    max_val = max(y_slice)
-    range_val = max_val - min_val
-    
-    # Calculate voltage levels for percent_low and percent_high
-    low_voltage = min_val + (range_val * percent_low)
-    high_voltage = min_val + (range_val * percent_high)
-    
-    # Find points around low_voltage crossing
-    for i in range(len(y_slice)-1):
-        if y_slice[i] <= low_voltage <= y_slice[i+1]:
-            # Linear interpolation for low point
-            slope = (y_slice[i+1] - y_slice[i]) / (x_slice[i+1] - x_slice[i])
-            t_low = x_slice[i] + (low_voltage - y_slice[i]) / slope
-            break
-    else:
-        return False, 0  # Low voltage crossing not found
-    
-    # Find points around high_voltage crossing
-    for i in range(len(y_slice)-1):
-        if y_slice[i] <= high_voltage <= y_slice[i+1]:
-            # Linear interpolation for high point
-            slope = (y_slice[i+1] - y_slice[i]) / (x_slice[i+1] - x_slice[i])
-            t_high = x_slice[i] + (high_voltage - y_slice[i]) / slope
-            break
-    else:
-        return False, 0  # High voltage crossing not found
-    
-    # Calculate rise time
-    rise_time_val = t_high - t_low
-    
-    # Check if rise time is within limits
-    if low_limit is not None and rise_time_val < low_limit:
-        return False, rise_time_val
-    if high_limit is not None and rise_time_val > high_limit:
-        return False, rise_time_val
-    
-    return True, rise_time_val
+    # No crossing found
+    return False, None
+
