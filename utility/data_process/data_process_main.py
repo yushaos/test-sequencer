@@ -28,18 +28,24 @@ for req in config["test_requirements"]:
     y_data = y_channel[:]
 
     # Call the specified function with parameters from config
-    if req["func_name"] == "max_check":
+    if req["func_name"] == "max":
         result = dpf.max_check(x_data, y_data,
                              time_begin=req["time_begin"],
                              time_end=req["time_end"],
                              low_limit=req["low_limit"],
                              high_limit=req["high_limit"])
-    elif req["func_name"] == "min_check":
+    elif req["func_name"] == "min":
         result = dpf.min_check(x_data, y_data,
                              time_begin=req["time_begin"],
                              time_end=req["time_end"],
                              low_limit=req["low_limit"],
                              high_limit=req["high_limit"])
+    elif req["func_name"] == "average":
+        result = dpf.average_check(x_data, y_data,
+                                 time_begin=req["time_begin"],
+                                 time_end=req["time_end"],
+                                 low_limit=req["low_limit"],
+                                 high_limit=req["high_limit"])
         
     # Print result with requirement ID
     print(f"REQ {req['req_id']}: {'PASS' if result else 'FAIL'}")

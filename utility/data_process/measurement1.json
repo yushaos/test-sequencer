@@ -5,7 +5,7 @@
 			"Group": "Group1",
             "channel_name": "A1",
             "req_level": "Critical",
-            "func_name": "max_check",
+            "func_name": "max",
             "low_limit": 0.5,
             "high_limit": 10.0,
             "time_begin": 2.0,
@@ -16,9 +16,20 @@
 			"Group": "Group1",
             "channel_name": "A1",
             "req_level": "Critical",
-            "func_name": "min_check",
+            "func_name": "min",
             "low_limit": 0.5,
             "high_limit": 10.0,
+            "time_begin": 1.1,
+            "time_end": 1.9
+        },
+		{
+            "req_id": "REQ003",
+			"Group": "Group1",
+            "channel_name": "A1",
+            "req_level": "Critical",
+            "func_name": "average",
+            "low_limit": 4.9,
+            "high_limit": 5.1,
             "time_begin": 1.1,
             "time_end": 1.9
         }
