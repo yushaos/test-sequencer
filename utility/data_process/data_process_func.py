@@ -77,7 +77,7 @@ def average_check(x_data, y_data, time_begin=None, time_end=None, low_limit=None
     
     return True, avg_value
 
-def threshold_cross(x_data, y_data, threshold, mode="rise", time_begin=None, time_end=None, low_limit=None, high_limit=None):
+def threshold_cross(x_data, y_data, threshold, mode="rise", time_begin=None, time_end=None):
     """
     Find time when signal crosses threshold
     """
@@ -100,26 +100,28 @@ def threshold_cross(x_data, y_data, threshold, mode="rise", time_begin=None, tim
             # Linear interpolation to get precise crossing time
             t_cross = x_slice[i-1] + (threshold - y_slice[i-1]) * \
                      (x_slice[i] - x_slice[i-1]) / (y_slice[i] - y_slice[i-1])
-            
-            # Check limits
-            if low_limit is not None and t_cross < low_limit:
-                return False, t_cross
-            if high_limit is not None and t_cross > high_limit:
-                return False, t_cross
-            return True, t_cross
+            return t_cross
             
         elif mode == "fall" and y_slice[i-1] >= threshold > y_slice[i]:
             # Linear interpolation to get precise crossing time
             t_cross = x_slice[i-1] + (threshold - y_slice[i-1]) * \
                      (x_slice[i] - x_slice[i-1]) / (y_slice[i] - y_slice[i-1])
-            
-            # Check limits
-            if low_limit is not None and t_cross < low_limit:
-                return False, t_cross
-            if high_limit is not None and t_cross > high_limit:
-                return False, t_cross
-            return True, t_cross
+            return t_cross
     
     # No crossing found
-    return False, None
+    return None
+
+def threshold_cross_result(cross_time, low_limit=None, high_limit=None):
+    """
+    Check if threshold crossing time is within limits
+    """
+    if cross_time is None:
+        return False, None
+        
+    if low_limit is not None and cross_time < low_limit:
+        return False, cross_time
+    if high_limit is not None and cross_time > high_limit:
+        return False, cross_time
+        
+    return True, cross_time
 

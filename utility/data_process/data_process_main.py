@@ -75,13 +75,14 @@ for req in config["test_requirements"]:
                              percent_low=req["percent_low"],
                              percent_high=req["percent_high"])
     elif req["func_name"] == "threshold_cross":
-        result = dpf.threshold_cross(x_data, y_data,
-                                   threshold=req["threshold"],
-                                   mode=req["mode"],
-                                   time_begin=req["time_begin"],
-                                   time_end=req["time_end"],
-                                   low_limit=req["low_limit"],
-                                   high_limit=req["high_limit"])
+        cross_time = dpf.threshold_cross(x_data, y_data,
+                                       threshold=req["threshold"],
+                                       mode=req["mode"],
+                                       time_begin=req["time_begin"],
+                                       time_end=req["time_end"])
+        result = dpf.threshold_cross_result(cross_time,
+                                          low_limit=req["low_limit"],
+                                          high_limit=req["high_limit"])
         
     # Print result with requirement ID and additional info
     print_result(req['req_id'], req['func_name'], result)
