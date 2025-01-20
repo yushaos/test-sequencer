@@ -32,6 +32,20 @@
             "high_limit": 5.1,
             "time_begin": 1.1,
             "time_end": 1.9
+        },
+		{
+            "req_id": "REQ004",
+			"Group": "Group1",
+            "channel_name": "A1",
+            "req_level": "Critical",
+            "func_name": "rise",
+			"low_limit": 0,
+            "high_limit": 0.1,
+			"threshold": 1,
+			"percent_low": 0.1,
+			"percent_high": 0.9,
+            "time_begin": 0.9,
+            "time_end": 1.9
         }
     ]
 }

@@ -12,6 +12,22 @@ with open(measurement_config_path) as f:
 
 tdms_file = TdmsFile(tdms_file_path)
 
+def print_result(req_id, func_name, result_data):
+    """Print test results based on function type"""
+    passed = result_data[0]
+    status = 'PASS' if passed else 'FAIL'
+    
+    if func_name == "max":
+        print(f"REQ {req_id}: {status} (Max: {result_data[1]:.3f}, Time: {result_data[2]:.3f}s)")
+    elif func_name == "min":
+        print(f"REQ {req_id}: {status} (Min: {result_data[1]:.3f}, Time: {result_data[2]:.3f}s)")
+    elif func_name == "average":
+        print(f"REQ {req_id}: {status} (Average: {result_data[1]:.3f})")
+    elif func_name == "rise":
+        print(f"REQ {req_id}: {status} (Rise Time: {result_data[1]:.3f}s)")
+    else:
+        print(f"REQ {req_id}: {status}")
+
 # Process each test requirement
 for req in config["test_requirements"]:
     # Get channel names
@@ -46,6 +62,15 @@ for req in config["test_requirements"]:
                                  time_end=req["time_end"],
                                  low_limit=req["low_limit"],
                                  high_limit=req["high_limit"])
+    elif req["func_name"] == "rise":
+        result = dpf.rise_time(x_data, y_data,
+                             time_begin=req["time_begin"],
+                             time_end=req["time_end"],
+                             low_limit=req["low_limit"],
+                             high_limit=req["high_limit"],
+                             threshold=req["threshold"],
+                             percent_low=req["percent_low"],
+                             percent_high=req["percent_high"])
         
-    # Print result with requirement ID
-    print(f"REQ {req['req_id']}: {'PASS' if result else 'FAIL'}")
+    # Print result with requirement ID and additional info
+    print_result(req['req_id'], req['func_name'], result)
