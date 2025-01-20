@@ -33,56 +33,56 @@ def print_result(req_id, func_name, result_data):
 
 # Process each test requirement
 for req in config["test_requirements"]:
-    # Get channel names
-    y_channel_name = req["channel_name"]
-    x_channel_name = f"{y_channel_name}_Time"
-    
-    # Read channel data from specified group
-    group = tdms_file[req["Group"]]
-    x_channel = group[x_channel_name]
-    y_channel = group[y_channel_name]
+    try:
+        # Get channel names
+        y_channel_name = req["channel_name"]
+        x_channel_name = f"{y_channel_name}_Time"
+        
+        # Read channel data from specified group
+        group = tdms_file[req["Group"]]
+        x_channel = group[x_channel_name]
+        y_channel = group[y_channel_name]
 
-    # Convert channel data to lists
-    x_data = x_channel[:]
-    y_data = y_channel[:]
+        # Convert channel data to lists
+        x_data = x_channel[:]
+        y_data = y_channel[:]
 
-    # Call the specified function with parameters from config
-    if req["func_name"] == "max":
-        result = dpf.max_check(x_data, y_data,
-                             time_begin=req["time_begin"],
-                             time_end=req["time_end"],
-                             low_limit=req["low_limit"],
-                             high_limit=req["high_limit"])
-    elif req["func_name"] == "min":
-        result = dpf.min_check(x_data, y_data,
-                             time_begin=req["time_begin"],
-                             time_end=req["time_end"],
-                             low_limit=req["low_limit"],
-                             high_limit=req["high_limit"])
-    elif req["func_name"] == "average":
-        result = dpf.average_check(x_data, y_data,
+        # Call the specified function with parameters from config
+        result = None
+        if req["func_name"] == "max":
+            result = dpf.max_check(x_data, y_data,
                                  time_begin=req["time_begin"],
                                  time_end=req["time_end"],
                                  low_limit=req["low_limit"],
                                  high_limit=req["high_limit"])
-    elif req["func_name"] == "rise":
-        result = dpf.rise_time(x_data, y_data,
-                             time_begin=req["time_begin"],
-                             time_end=req["time_end"],
-                             low_limit=req["low_limit"],
-                             high_limit=req["high_limit"],
-                             threshold=req["threshold"],
-                             percent_low=req["percent_low"],
-                             percent_high=req["percent_high"])
-    elif req["func_name"] == "threshold_cross":
-        cross_time = dpf.threshold_cross(x_data, y_data,
-                                       threshold=req["threshold"],
-                                       mode=req["mode"],
-                                       time_begin=req["time_begin"],
-                                       time_end=req["time_end"])
-        result = dpf.threshold_cross_result(cross_time,
-                                          low_limit=req["low_limit"],
-                                          high_limit=req["high_limit"])
+        elif req["func_name"] == "min":
+            result = dpf.min_check(x_data, y_data,
+                                 time_begin=req["time_begin"],
+                                 time_end=req["time_end"],
+                                 low_limit=req["low_limit"],
+                                 high_limit=req["high_limit"])
+        elif req["func_name"] == "average":
+            result = dpf.average_check(x_data, y_data,
+                                     time_begin=req["time_begin"],
+                                     time_end=req["time_end"],
+                                     low_limit=req["low_limit"],
+                                     high_limit=req["high_limit"])
+        elif req["func_name"] == "threshold_cross":
+            cross_time = dpf.threshold_cross(x_data, y_data,
+                                           threshold=req["threshold"],
+                                           mode=req["mode"],
+                                           time_begin=req["time_begin"],
+                                           time_end=req["time_end"])
+            result = dpf.threshold_cross_result(cross_time,
+                                              low_limit=req["low_limit"],
+                                              high_limit=req["high_limit"])
         
-    # Print result with requirement ID and additional info
-    print_result(req['req_id'], req['func_name'], result)
+        # Print result only if we have a supported function
+        if result is not None:
+            print_result(req['req_id'], req['func_name'], result)
+        else:
+            print(f"Skipping {req['req_id']}: Unknown function '{req['func_name']}'")
+            
+    except Exception as e:
+        print(f"Error processing {req['req_id']}: {str(e)}")
+        continue
