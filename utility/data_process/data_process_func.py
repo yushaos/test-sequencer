@@ -111,17 +111,45 @@ def threshold_cross(x_data, y_data, threshold, mode="rise", time_begin=None, tim
     # No crossing found
     return None
 
-def threshold_cross_result(cross_time, low_limit=None, high_limit=None):
+def result_check(value, low_limit=None, high_limit=None):
     """
-    Check if threshold crossing time is within limits
+    Generic function to check if value is within limits
     """
-    if cross_time is None:
+    if value is None:
         return False, None
         
-    if low_limit is not None and cross_time < low_limit:
-        return False, cross_time
-    if high_limit is not None and cross_time > high_limit:
-        return False, cross_time
+    if low_limit is not None and value < low_limit:
+        return False, value
+    if high_limit is not None and value > high_limit:
+        return False, value
         
-    return True, cross_time
+    return True, value
+
+def edge_time_diff(x1_data, y1_data, x2_data, y2_data, threshold1, threshold2, 
+                  mode1="rise", mode2="rise",
+                  time_begin1=None, time_end1=None,
+                  time_begin2=None, time_end2=None):
+    """
+    Find time difference between two signal edge crossings
+    """
+    # Get first signal crossing time
+    t1 = threshold_cross(x1_data, y1_data,
+                        threshold=threshold1,
+                        mode=mode1,
+                        time_begin=time_begin1,
+                        time_end=time_end1)
+    
+    # Get second signal crossing time
+    t2 = threshold_cross(x2_data, y2_data,
+                        threshold=threshold2,
+                        mode=mode2,
+                        time_begin=time_begin2,
+                        time_end=time_end2)
+    
+    # If either crossing not found, return None
+    if t1 is None or t2 is None:
+        return None
+        
+    # Return time difference (t2 - t1)
+    return t2 - t1
 

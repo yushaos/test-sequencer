@@ -28,6 +28,9 @@ def print_result(req_id, func_name, result_data):
     elif func_name == "threshold_cross":
         time_str = f"Time: {result_data[1]:.3f}s" if result_data[1] is not None else "No crossing found"
         print(f"REQ {req_id}: {status} ({time_str})")
+    elif func_name == "edge_time_diff":
+        time_str = f"Time Diff: {result_data[1]:.3f}s" if result_data[1] is not None else "No crossing found"
+        print(f"REQ {req_id}: {status} ({time_str})")
     else:
         print(f"REQ {req_id}: {status}")
 
@@ -73,9 +76,30 @@ for req in config["test_requirements"]:
                                            mode=req["mode"],
                                            time_begin=req["time_begin"],
                                            time_end=req["time_end"])
-            result = dpf.threshold_cross_result(cross_time,
-                                              low_limit=req["low_limit"],
-                                              high_limit=req["high_limit"])
+            result = dpf.result_check(cross_time,
+                                    low_limit=req["low_limit"],
+                                    high_limit=req["high_limit"])
+        elif req["func_name"] == "edge_time_diff":
+            # Get second channel data
+            x2_channel_name = f"{req['channel_name2']}_Time"
+            x2_channel = group[x2_channel_name]
+            y2_channel = group[req['channel_name2']]
+            x2_data = x2_channel[:]
+            y2_data = y2_channel[:]
+            
+            time_diff = dpf.edge_time_diff(x_data, y_data, 
+                                         x2_data, y2_data,
+                                         threshold1=req["threshold"],
+                                         threshold2=req["threshold2"],
+                                         mode1=req["mode"],
+                                         mode2=req["mode2"],
+                                         time_begin1=req["time_begin"],
+                                         time_end1=req["time_end"],
+                                         time_begin2=req["time_begin2"],
+                                         time_end2=req["time_end2"])
+            result = dpf.result_check(time_diff,
+                                    low_limit=req["low_limit"],
+                                    high_limit=req["high_limit"])
         
         # Print result only if we have a supported function
         if result is not None:
