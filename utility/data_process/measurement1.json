@@ -63,19 +63,19 @@
             "req_id": "REQ006",
 			"Group": "Group1",
             "channel_name": "A1",
-			"channel_name2": "A2",
+			"channel_name2": "A1",
             "req_level": "Critical",
             "func_name": "edge_time_diff",
 			"mode": "rise",
 			"mode2": "fall",
-			"low_limit": 8,
-            "high_limit": 9,
-			"threshold": 4,
-			"threshold2": 40,
-            "time_begin": null,
-            "time_end": null,
-			"time_begin2": null,
-            "time_end2": null
+			"low_limit": 1.9,
+            "high_limit": 2.1,
+			"threshold": 1,
+			"threshold2": -1,
+            "time_begin": 4.5,
+            "time_end": 5.5,
+			"time_begin2": 6.5,
+            "time_end2": 7.5
         }
     ]
 }
