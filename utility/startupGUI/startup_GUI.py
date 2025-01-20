@@ -60,6 +60,8 @@ class StartupGUI:
                     style='Fixed.TButton'
                 )
                 btn.grid(row=row, column=col, padx=5, pady=5, sticky='nsew', ipadx=20, ipady=10)
+                btn.bind("<Enter>", lambda event, b=btn: self.on_enter(event, b))
+                btn.bind("<Leave>", lambda event, b=btn: self.on_leave(event, b))
     
     def launch_item(self, item):
         path = item['path']
@@ -96,6 +98,14 @@ class StartupGUI:
             lines.append(' '.join(current_line))
         
         return '\n'.join(lines)
+
+    def on_enter(self, event, button):
+        self.style.configure('Fixed.TButton', relief='ridge', borderwidth=2)
+        event.widget.config(style='Fixed.TButton')
+
+    def on_leave(self, event, button):
+        self.style.configure('Fixed.TButton', relief='raised', borderwidth=1)
+        event.widget.config(style='Fixed.TButton')
 
 def main():
     root = tk.Tk()
