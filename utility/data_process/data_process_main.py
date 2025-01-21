@@ -40,6 +40,9 @@ def print_result(req_id, func_name, result_data):
     elif func_name == "frequency":
         freq_str = f"Frequency: {result_data[1]:.2f} Hz" if result_data[1] is not None else "No frequency detected"
         print(f"REQ {req_id}: {status} ({freq_str})")
+    elif func_name == "duty_cycle":
+        duty_str = f"Duty Cycle: {result_data[1]:.1f}" if result_data[1] is not None else "No duty cycle detected"
+        print(f"REQ {req_id}: {status} ({duty_str})")
     else:
         print(f"REQ {req_id}: {status}")
 
@@ -141,6 +144,13 @@ for req in config["test_requirements"]:
                                time_begin=req["time_begin"],
                                time_end=req["time_end"])
             result = dpf.result_check(frequency,
+                                    low_limit=req["low_limit"],
+                                    high_limit=req["high_limit"])
+        elif req["func_name"] == "duty_cycle":
+            duty = dpf.DutyCycle(x_data, y_data,
+                               time_begin=req["time_begin"],
+                               time_end=req["time_end"])
+            result = dpf.result_check(duty,
                                     low_limit=req["low_limit"],
                                     high_limit=req["high_limit"])
         

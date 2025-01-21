@@ -323,6 +323,37 @@ def freq(x_data, y_data, time_begin=None, time_end=None):
     # Find frequency with maximum power
     dominant_freq = frequencies[psd.argmax()]
     
-    print(f"Dominant frequency: {dominant_freq:.2f} Hz")
+    #print(f"Dominant frequency: {dominant_freq:.2f} Hz")
     return dominant_freq
+
+def DutyCycle(x_data, y_data, time_begin=None, time_end=None):
+    """
+    Calculate duty cycle of a digital signal
+    """
+    # Find indices for the specified time range
+    start_idx = 0
+    end_idx = len(x_data)
+    
+    if time_begin is not None:
+        start_idx = next((i for i, x in enumerate(x_data) if x >= time_begin), 0)
+    if time_end is not None:
+        end_idx = next((i for i, x in enumerate(x_data) if x > time_end), len(x_data))
+    
+    # Get data slice
+    y_slice = y_data[start_idx:end_idx]
+    
+    # Calculate mean of signal
+    y_min = np.min(y_slice)
+    y_max = np.max(y_slice)
+    
+    # Normalize signal between 0 and 1
+    if y_max == y_min:
+        return None
+        
+    y_normalized = (y_slice - y_min) / (y_max - y_min)
+    
+    # Calculate duty cycle (mean of normalized signal)
+    duty_cycle = np.mean(y_normalized)
+    
+    return duty_cycle
 
