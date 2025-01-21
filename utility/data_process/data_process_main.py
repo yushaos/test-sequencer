@@ -34,6 +34,9 @@ def print_result(req_id, func_name, result_data):
     elif func_name == "transition_time":
         time_str = f"Transition Time: {result_data[1]:.6f}s" if result_data[1] is not None else "No valid transition found"
         print(f"REQ {req_id}: {status} ({time_str})")
+    elif func_name == "pulse_width":
+        width_str = f"Pulse Width: {result_data[1]:.6f}s" if result_data[1] is not None else "No valid pulse found"
+        print(f"REQ {req_id}: {status} ({width_str})")
     else:
         print(f"REQ {req_id}: {status}")
 
@@ -119,6 +122,15 @@ for req in config["test_requirements"]:
                                           time_end=req["time_end"],
                                           min_level=req["min_level"])
             result = dpf.result_check(trans_time,
+                                    low_limit=req["low_limit"],
+                                    high_limit=req["high_limit"])
+        elif req["func_name"] == "pulse_width":
+            width = dpf.pulse_width(x_data, y_data,
+                                  threshold=req["threshold"],
+                                  mode=req["mode"],
+                                  time_begin=req["time_begin"],
+                                  time_end=req["time_end"])
+            result = dpf.result_check(width,
                                     low_limit=req["low_limit"],
                                     high_limit=req["high_limit"])
         

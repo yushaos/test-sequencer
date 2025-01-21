@@ -166,6 +166,19 @@
 			"min_level": 40,
             "time_begin": null,
             "time_end": null
+        },
+		{
+            "req_id": "REQ013",
+			"Group": "Group1",
+            "channel_name": "A1",
+            "req_level": "Critical",
+            "func_name": "pulse_width",
+			"mode": "fall",
+			"low_limit": 0.99,
+            "high_limit": 1.01,
+			"threshold": -1,
+            "time_begin": 6.5,
+            "time_end": 8.5
         }
     ]
 }

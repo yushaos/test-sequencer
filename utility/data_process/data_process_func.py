@@ -275,3 +275,24 @@ def transition_duration(x_data, y_data, min_level, mode="rise", lower_threshold=
     
     return trans_time
 
+def pulse_width(x_data, y_data, threshold, mode="rise", time_begin=None, time_end=None):
+    """
+    Calculate pulse width by finding time between rising and falling edges (or vice versa)
+    at specified threshold level.
+    """
+    # Find first edge
+    t1 = threshold_cross(x_data, y_data, threshold, mode, time_begin, time_end)
+    if t1 is None:
+        print(f"First edge not found at threshold={threshold}")
+        return None
+    
+    # Find second edge with opposite mode, starting from t1
+    opposite_mode = "fall" if mode == "rise" else "rise"
+    t2 = threshold_cross(x_data, y_data, threshold, opposite_mode, time_begin=t1, time_end=time_end)
+    if t2 is None:
+        print(f"Second edge not found at threshold={threshold}")
+        return None
+    
+    print(f"First edge at t1={t1:.6f}s, Second edge at t2={t2:.6f}s")
+    return t2 - t1
+
