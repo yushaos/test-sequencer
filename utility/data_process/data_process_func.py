@@ -357,3 +357,30 @@ def DutyCycle(x_data, y_data, time_begin=None, time_end=None):
     
     return duty_cycle
 
+def PulseCount(x_data, y_data, threshold, time_begin=None, time_end=None):
+    """
+    Count number of pulses by detecting rising edges crossing the threshold
+    """
+    # Find indices for the specified time range
+    start_idx = 0
+    end_idx = len(x_data)
+    
+    if time_begin is not None:
+        start_idx = next((i for i, x in enumerate(x_data) if x >= time_begin), 0)
+    if time_end is not None:
+        end_idx = next((i for i, x in enumerate(x_data) if x > time_end), len(x_data))
+    
+    # Get data slice
+    y_slice = y_data[start_idx:end_idx]
+    
+    # Convert signal to binary (above/below threshold)
+    binary_signal = (y_slice > threshold).astype(int)
+    
+    # Detect edges using diff
+    edges = np.diff(binary_signal)
+    
+    # Count rising edges (transitions from 0 to 1)
+    pulse_count = np.sum(edges == 1)
+    
+    return pulse_count
+

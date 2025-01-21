@@ -43,6 +43,9 @@ def print_result(req_id, func_name, result_data):
     elif func_name == "duty_cycle":
         duty_str = f"Duty Cycle: {result_data[1]:.1f}" if result_data[1] is not None else "No duty cycle detected"
         print(f"REQ {req_id}: {status} ({duty_str})")
+    elif func_name == "pulse_count":
+        count_str = f"Pulse Count: {result_data[1]}" if result_data[1] is not None else "No pulses detected"
+        print(f"REQ {req_id}: {status} ({count_str})")
     else:
         print(f"REQ {req_id}: {status}")
 
@@ -151,6 +154,15 @@ for req in config["test_requirements"]:
                                time_begin=req["time_begin"],
                                time_end=req["time_end"])
             result = dpf.result_check(duty,
+                                    low_limit=req["low_limit"],
+                                    high_limit=req["high_limit"])
+                                    
+        elif req["func_name"] == "pulse_count":
+            count = dpf.PulseCount(x_data, y_data,
+                                 threshold=req["threshold"],
+                                 time_begin=req["time_begin"],
+                                 time_end=req["time_end"])
+            result = dpf.result_check(count,
                                     low_limit=req["low_limit"],
                                     high_limit=req["high_limit"])
         

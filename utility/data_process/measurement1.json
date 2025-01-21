@@ -201,6 +201,18 @@
             "high_limit": 0.55,
             "time_begin": 1.1,
             "time_end": 8.9
+        },
+		{
+            "req_id": "REQ016",
+			"Group": "Group1",
+            "channel_name": "A2",
+            "req_level": "Critical",
+            "func_name": "pulse_count",
+			"low_limit":75,
+            "high_limit": 79,
+			"threshold": 5,
+            "time_begin": 1.1,
+            "time_end": 8.9
         }
     ]
 }
