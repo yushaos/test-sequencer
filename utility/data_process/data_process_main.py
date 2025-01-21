@@ -133,28 +133,25 @@ for req in config["test_requirements"]:
                                        low_limit=req["low_limit"],
                                        high_limit=req["high_limit"])
         elif req["func_name"] == "frequency":
-            frequency = dpf.freq(x_data, y_data,
-                               time_begin=req["time_begin"],
-                               time_end=req["time_end"])
-            result = dpf.result_check(frequency,
-                                    low_limit=req["low_limit"],
-                                    high_limit=req["high_limit"])
+            result = dpf.FreqLimit(x_data, y_data,
+                                 time_begin=req["time_begin"],
+                                 time_end=req["time_end"],
+                                 low_limit=req["low_limit"],
+                                 high_limit=req["high_limit"])
         elif req["func_name"] == "duty_cycle":
-            duty = dpf.DutyCycle(x_data, y_data,
-                               time_begin=req["time_begin"],
-                               time_end=req["time_end"])
-            result = dpf.result_check(duty,
-                                    low_limit=req["low_limit"],
-                                    high_limit=req["high_limit"])
+            result = dpf.DutyCycleLimit(x_data, y_data,
+                                      time_begin=req["time_begin"],
+                                      time_end=req["time_end"],
+                                      low_limit=req["low_limit"],
+                                      high_limit=req["high_limit"])
                                     
         elif req["func_name"] == "pulse_count":
-            count = dpf.PulseCount(x_data, y_data,
-                                 threshold=req["threshold"],
-                                 time_begin=req["time_begin"],
-                                 time_end=req["time_end"])
-            result = dpf.result_check(count,
-                                    low_limit=req["low_limit"],
-                                    high_limit=req["high_limit"])
+            result = dpf.PulseCountLimit(x_data, y_data,
+                                       threshold=req["threshold"],
+                                       time_begin=req["time_begin"],
+                                       time_end=req["time_end"],
+                                       low_limit=req["low_limit"],
+                                       high_limit=req["high_limit"])
         
         # Print result only if we have a supported function
         if result is not None:

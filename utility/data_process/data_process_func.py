@@ -370,6 +370,11 @@ def freq(x_data, y_data, time_begin=None, time_end=None):
     #print(f"Dominant frequency: {dominant_freq:.2f} Hz")
     return dominant_freq
 
+def FreqLimit(x_data, y_data, time_begin=None, time_end=None, low_limit=None, high_limit=None):
+    frequency = freq(x_data, y_data, time_begin, time_end)
+    pass_fail, value = result_check(frequency, low_limit, high_limit)
+    return (pass_fail, value, None)  # Return None for timestamp since frequency is a rate
+
 def DutyCycle(x_data, y_data, time_begin=None, time_end=None):
     """
     Calculate duty cycle of a digital signal
@@ -377,29 +382,27 @@ def DutyCycle(x_data, y_data, time_begin=None, time_end=None):
     # Find indices for the specified time range
     start_idx = 0
     end_idx = len(x_data)
-    
     if time_begin is not None:
         start_idx = next((i for i, x in enumerate(x_data) if x >= time_begin), 0)
     if time_end is not None:
         end_idx = next((i for i, x in enumerate(x_data) if x > time_end), len(x_data))
-    
     # Get data slice
     y_slice = y_data[start_idx:end_idx]
-    
     # Calculate mean of signal
     y_min = np.min(y_slice)
     y_max = np.max(y_slice)
-    
     # Normalize signal between 0 and 1
     if y_max == y_min:
-        return None
-        
+        return None  
     y_normalized = (y_slice - y_min) / (y_max - y_min)
-    
     # Calculate duty cycle (mean of normalized signal)
     duty_cycle = np.mean(y_normalized)
-    
     return duty_cycle
+
+def DutyCycleLimit(x_data, y_data, time_begin=None, time_end=None, low_limit=None, high_limit=None):
+    duty = DutyCycle(x_data, y_data, time_begin, time_end)
+    pass_fail, value = result_check(duty, low_limit, high_limit)
+    return (pass_fail, value, None)  # Return None for timestamp since duty cycle is a ratio
 
 def PulseCount(x_data, y_data, threshold, time_begin=None, time_end=None):
     """
@@ -428,5 +431,7 @@ def PulseCount(x_data, y_data, threshold, time_begin=None, time_end=None):
     
     return pulse_count
 
-
-
+def PulseCountLimit(x_data, y_data, threshold, time_begin=None, time_end=None, low_limit=None, high_limit=None):
+    count = PulseCount(x_data, y_data, threshold, time_begin, time_end)
+    pass_fail, value = result_check(count, low_limit, high_limit)
+    return (pass_fail, value, None)  # Return None for timestamp since count is not a time
