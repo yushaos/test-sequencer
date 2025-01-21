@@ -2,6 +2,20 @@ from scipy import interpolate
 import numpy as np
 from scipy import signal
 
+def result_check(value, low_limit=None, high_limit=None):
+    """
+    Generic function to check if value is within limits
+    """
+    if value is None:
+        return False, None
+        
+    if low_limit is not None and value < low_limit:
+        return False, value
+    if high_limit is not None and value > high_limit:
+        return False, value
+        
+    return True, value
+
 def max_check(x_data, y_data, time_begin=None, time_end=None):
     """
     Find max value in specified range
@@ -23,6 +37,11 @@ def max_check(x_data, y_data, time_begin=None, time_end=None):
     
     return max_value, x_at_max
 
+def MaxLimit(x_data, y_data, time_begin=None, time_end=None, low_limit=None, high_limit=None):
+    max_value, x_at_max = max_check(x_data, y_data, time_begin, time_end)
+    pass_fail, value = result_check(max_value, low_limit, high_limit)
+    return (pass_fail, value, x_at_max)
+
 def min_check(x_data, y_data, time_begin=None, time_end=None):
     """
     Find min value in specified range
@@ -43,6 +62,11 @@ def min_check(x_data, y_data, time_begin=None, time_end=None):
     x_at_min = x_data[min_idx]
     
     return min_value, x_at_min
+
+def MinLimit(x_data, y_data, time_begin=None, time_end=None, low_limit=None, high_limit=None):
+    min_value, x_at_min = min_check(x_data, y_data, time_begin, time_end)
+    pass_fail, value = result_check(min_value, low_limit, high_limit)
+    return (pass_fail, value, x_at_min)
 
 def average_check(x_data, y_data, time_begin=None, time_end=None):
     """
@@ -96,20 +120,6 @@ def threshold_cross(x_data, y_data, threshold, mode="rise", time_begin=None, tim
     
     # No crossing found
     return None
-
-def result_check(value, low_limit=None, high_limit=None):
-    """
-    Generic function to check if value is within limits
-    """
-    if value is None:
-        return False, None
-        
-    if low_limit is not None and value < low_limit:
-        return False, value
-    if high_limit is not None and value > high_limit:
-        return False, value
-        
-    return True, value
 
 def edge_time_diff(x1_data, y1_data, x2_data, y2_data, threshold1, threshold2, 
                   mode1="rise", mode2="rise",
@@ -383,4 +393,6 @@ def PulseCount(x_data, y_data, threshold, time_begin=None, time_end=None):
     pulse_count = np.sum(edges == 1)
     
     return pulse_count
+
+
 

@@ -68,22 +68,18 @@ for req in config["test_requirements"]:
         # Call the specified function with parameters from config
         result = None
         if req["func_name"] == "max":
-            max_value, x_at_max = dpf.max_check(x_data, y_data,
-                                              time_begin=req["time_begin"],
-                                              time_end=req["time_end"])
-            pass_fail, value = dpf.result_check(max_value, 
-                                              low_limit=req["low_limit"],
-                                              high_limit=req["high_limit"])
-            result = (pass_fail, value, x_at_max)
+            result = dpf.MaxLimit(x_data, y_data,
+                                time_begin=req["time_begin"],
+                                time_end=req["time_end"],
+                                low_limit=req["low_limit"],
+                                high_limit=req["high_limit"])
             
         elif req["func_name"] == "min":
-            min_value, x_at_min = dpf.min_check(x_data, y_data,
-                                              time_begin=req["time_begin"],
-                                              time_end=req["time_end"])
-            pass_fail, value = dpf.result_check(min_value,
-                                              low_limit=req["low_limit"],
-                                              high_limit=req["high_limit"])
-            result = (pass_fail, value, x_at_min)
+            result = dpf.MinLimit(x_data, y_data,
+                                time_begin=req["time_begin"],
+                                time_end=req["time_end"],
+                                low_limit=req["low_limit"],
+                                high_limit=req["high_limit"])
             
         elif req["func_name"] == "average":
             avg_value = dpf.average_check(x_data, y_data,
