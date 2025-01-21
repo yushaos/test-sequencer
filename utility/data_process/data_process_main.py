@@ -37,6 +37,9 @@ def print_result(req_id, func_name, result_data):
     elif func_name == "pulse_width":
         width_str = f"Pulse Width: {result_data[1]:.6f}s" if result_data[1] is not None else "No valid pulse found"
         print(f"REQ {req_id}: {status} ({width_str})")
+    elif func_name == "frequency":
+        freq_str = f"Frequency: {result_data[1]:.2f} Hz" if result_data[1] is not None else "No frequency detected"
+        print(f"REQ {req_id}: {status} ({freq_str})")
     else:
         print(f"REQ {req_id}: {status}")
 
@@ -131,6 +134,13 @@ for req in config["test_requirements"]:
                                   time_begin=req["time_begin"],
                                   time_end=req["time_end"])
             result = dpf.result_check(width,
+                                    low_limit=req["low_limit"],
+                                    high_limit=req["high_limit"])
+        elif req["func_name"] == "frequency":
+            frequency = dpf.freq(x_data, y_data,
+                               time_begin=req["time_begin"],
+                               time_end=req["time_end"])
+            result = dpf.result_check(frequency,
                                     low_limit=req["low_limit"],
                                     high_limit=req["high_limit"])
         

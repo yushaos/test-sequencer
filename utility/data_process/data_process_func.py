@@ -1,5 +1,6 @@
 from scipy import interpolate
 import numpy as np
+from scipy import signal
 
 def max_check(x_data, y_data, time_begin=None, time_end=None):
     """
@@ -293,6 +294,35 @@ def pulse_width(x_data, y_data, threshold, mode="rise", time_begin=None, time_en
         print(f"Second edge not found at threshold={threshold}")
         return None
     
-    print(f"First edge at t1={t1:.6f}s, Second edge at t2={t2:.6f}s")
+    #print(f"First edge at t1={t1:.6f}s, Second edge at t2={t2:.6f}s")
     return t2 - t1
+
+def freq(x_data, y_data, time_begin=None, time_end=None):
+    """
+    Calculate the dominant frequency of the signal using Welch's method
+    """
+    # Find indices for the specified time range
+    start_idx = 0
+    end_idx = len(x_data)
+    
+    if time_begin is not None:
+        start_idx = next((i for i, x in enumerate(x_data) if x >= time_begin), 0)
+    if time_end is not None:
+        end_idx = next((i for i, x in enumerate(x_data) if x > time_end), len(x_data))
+    
+    # Get data slice
+    y_slice = y_data[start_idx:end_idx]
+    
+    # Calculate sampling frequency
+    dt = x_data[1] - x_data[0]  # Assuming uniform sampling
+    fs = 1/dt
+    
+    # Calculate power spectral density using Welch's method
+    frequencies, psd = signal.welch(y_slice, fs=fs, nperseg=min(len(y_slice), 1024))
+    
+    # Find frequency with maximum power
+    dominant_freq = frequencies[psd.argmax()]
+    
+    print(f"Dominant frequency: {dominant_freq:.2f} Hz")
+    return dominant_freq
 
