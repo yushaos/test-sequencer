@@ -31,6 +31,9 @@ def print_result(req_id, func_name, result_data):
     elif func_name == "edge_time_diff":
         time_str = f"Time Diff: {result_data[1]:.3f}s" if result_data[1] is not None else "No crossing found"
         print(f"REQ {req_id}: {status} ({time_str})")
+    elif func_name == "transition":
+        time_str = f"Transition Time: {result_data[1]:.6f}s" if result_data[1] is not None else "No valid transition found"
+        print(f"REQ {req_id}: {status} ({time_str})")
     else:
         print(f"REQ {req_id}: {status}")
 
@@ -105,6 +108,17 @@ for req in config["test_requirements"]:
                                          time_begin2=req["time_begin2"],
                                          time_end2=req["time_end2"])
             result = dpf.result_check(time_diff,
+                                    low_limit=req["low_limit"],
+                                    high_limit=req["high_limit"])
+        elif req["func_name"] == "transition":
+            trans_time = dpf.transition_time(x_data, y_data,
+                                          mode=req["mode"],
+                                          lower_threshold=req["lower_threshold"],
+                                          upper_threshold=req["upper_threshold"],
+                                          time_begin=req["time_begin"],
+                                          time_end=req["time_end"],
+                                          min_level=req["min_level"])
+            result = dpf.result_check(trans_time,
                                     low_limit=req["low_limit"],
                                     high_limit=req["high_limit"])
         

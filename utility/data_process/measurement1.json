@@ -76,6 +76,21 @@
             "time_end": 5.5,
 			"time_begin2": 6.5,
             "time_end2": 7.5
+        },
+		{
+            "req_id": "REQ007",
+			"Group": "Group1",
+            "channel_name": "A1",
+            "req_level": "Critical",
+            "func_name": "transition",
+			"mode": "rise",
+			"low_limit": 1.9,
+            "high_limit": 2.1,
+			"lower_threshold": 0.1,
+			"upper_threshold": 0.9,
+			"min_level": 3.5,
+            "time_begin": null,
+            "time_end": null
         }
     ]
 }
