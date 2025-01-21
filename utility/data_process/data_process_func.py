@@ -228,6 +228,23 @@ def transition_duration(x_data, y_data, min_level, mode="rise", lower_threshold=
     y_upper = y_min + upper_threshold * y_range
     print(f"Calculated threshold levels: lower = {y_lower:.3f}, upper = {y_upper:.3f}")
     
+    # Handle case where transition happens between adjacent points
+    if abs(max_idx - min_idx) <= 1:
+        x0, x1 = x_data[min_idx], x_data[max_idx]
+        y0, y1 = float(y_data[min_idx]), float(y_data[max_idx])
+        
+        # Linear interpolation: t = t0 + (y_target - y0) * (t1 - t0)/(y1 - y0)
+        if mode == "rise":
+            t_lower = x0 + (y_lower - y0) * (x1 - x0)/(y1 - y0)
+            t_upper = x0 + (y_upper - y0) * (x1 - x0)/(y1 - y0)
+        else:  # fall
+            t_lower = x0 + (y_upper - y0) * (x1 - x0)/(y1 - y0)
+            t_upper = x0 + (y_lower - y0) * (x1 - x0)/(y1 - y0)
+            
+        trans_time = abs(t_upper - t_lower)
+        print(f"Interpolated transition time = {trans_time:.6f}")
+        return trans_time
+    
     # Find times at threshold levels using interpolation within min_idx to max_idx range
     x_segment = x_data[min_idx:max_idx+1]
     y_segment = y_data[min_idx:max_idx+1]
