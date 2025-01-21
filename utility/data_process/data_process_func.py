@@ -138,14 +138,13 @@ def edge_time_diff(x1_data, y1_data, x2_data, y2_data, threshold1, threshold2,
     # Return time difference (t2 - t1)
     return t2 - t1
 
-def transition_time(x_data, y_data, mode="rise", lower_threshold=0.1, upper_threshold=0.9, 
-                   time_begin=None, time_end=None, min_level=None):
-    """
-    Find signal transition (rise/fall) time between thresholds
-    """
-    print(f"\nStarting transition_time analysis:")
-    print(f"Mode: {mode}, Min Level: {min_level}")
-    print(f"Thresholds: {lower_threshold*100}% to {upper_threshold*100}%")
+def transition_duration(x_data, y_data, min_level, mode="rise", lower_threshold=0.1, upper_threshold=0.9, time_begin=None, time_end=None):
+    """Calculate rise/fall time between specified thresholds"""    
+    # Find the time when signal crosses min_level
+    t_cross = threshold_cross(x_data, y_data, min_level, mode, time_begin, time_end)
+    print(f"Found min_level crossing at t = {t_cross}")
+    if t_cross is None:
+        return None
     
     # Find indices for the specified time range
     start_idx = 0
@@ -156,63 +155,90 @@ def transition_time(x_data, y_data, mode="rise", lower_threshold=0.1, upper_thre
     if time_end is not None:
         end_idx = next((i for i, x in enumerate(x_data) if x > time_end), len(x_data))
     
-    print(f"Analysis window: {x_data[start_idx]:.6f}s to {x_data[end_idx-1]:.6f}s")
+    # Find the index closest to crossing time
+    cross_idx = next(i for i, x in enumerate(x_data[start_idx:end_idx]) if x >= t_cross) + start_idx
+    print(f"Cross index found at {cross_idx}")
     
-    # Get data slice
-    x_slice = x_data[start_idx:end_idx]
-    y_slice = y_data[start_idx:end_idx]
-    
-    # Find transition points
-    for i in range(1, len(y_slice)):
-        if mode == "rise" and y_slice[i] > y_slice[i-1]:  # Rising edge
-            y1, y2 = y_slice[i-1], y_slice[i]
-            x1, x2 = x_slice[i-1], x_slice[i]
-            
-            # Check min_level requirement
-            if min_level is not None and max(y1, y2) < min_level:
-                continue
-                
-            # Calculate actual threshold values
-            amplitude = y2 - y1
-            low_thresh = y1 + amplitude * lower_threshold
-            high_thresh = y1 + amplitude * upper_threshold
-            
-            print(f"Found rising edge from ({x1:.6f}s, {y1:.6f}V) to ({x2:.6f}s, {y2:.6f}V)")
-            print(f"Threshold levels: {low_thresh:.6f}V and {high_thresh:.6f}V")
-            
-            # Linear interpolation for both thresholds
-            t1 = x1 + (low_thresh - y1) * (x2 - x1) / (y2 - y1)
-            t2 = x1 + (high_thresh - y1) * (x2 - x1) / (y2 - y1)
-            
-        elif mode == "fall" and y_slice[i] < y_slice[i-1]:  # Falling edge
-            y1, y2 = y_slice[i-1], y_slice[i]
-            x1, x2 = x_slice[i-1], x_slice[i]
-            
-            # Check min_level requirement
-            if min_level is not None and max(y1, y2) < min_level:
-                continue
-                
-            # Calculate actual threshold values for falling edge
-            amplitude = y1 - y2  # Note: y1 is higher than y2 for falling edge
-            # Swap thresholds for falling edge
-            high_thresh = y1 - amplitude * lower_threshold  # 90% of initial value
-            low_thresh = y1 - amplitude * upper_threshold   # 10% of initial value
-            
-            print(f"Found falling edge from ({x1:.6f}s, {y1:.6f}V) to ({x2:.6f}s, {y2:.6f}V)")
-            print(f"Threshold levels: {high_thresh:.6f}V and {low_thresh:.6f}V")
-            
-            # Linear interpolation for both thresholds
-            t1 = x1 + (high_thresh - y1) * (x2 - x1) / (y2 - y1)  # Time at 90%
-            t2 = x1 + (low_thresh - y1) * (x2 - x1) / (y2 - y1)   # Time at 10%
-            
+    # Function to calculate moving average
+    def moving_average(data, idx, window=10, backwards=False):
+        if backwards:
+            start = max(0, idx - window + 1)
+            points = [float(data[i]) for i in range(start, idx + 1)]
         else:
-            continue
-            
-        print(f"Found crossings at t1={t1:.6f}s and t2={t2:.6f}s")
-        trans_time = t2 - t1
-        print(f"Found transition time: {trans_time:.6f}s")
-        return trans_time
+            end = min(len(data), idx + window)
+            points = [float(data[i]) for i in range(idx, end)]
+        return sum(points) / len(points)
+    
+    if mode == "rise":
+        # Look backwards for minimum
+        min_idx = cross_idx
+        prev_avg = moving_average(y_data, min_idx, backwards=True)
+        
+        for i in range(cross_idx - 1, start_idx, -1):
+            curr_avg = moving_average(y_data, i, backwards=True)
+            if curr_avg >= prev_avg:  # Stop when signal stops decreasing
+                break
+            min_idx = i
+            prev_avg = curr_avg
                 
-    print("No valid transitions found")
-    return None
+        # Look forwards for maximum
+        max_idx = cross_idx
+        prev_avg = moving_average(y_data, max_idx)
+        
+        for i in range(cross_idx + 1, end_idx):
+            curr_avg = moving_average(y_data, i)
+            if curr_avg <= prev_avg:  # Stop when signal stops increasing
+                break
+            max_idx = i
+            prev_avg = curr_avg
+            
+    else:  # mode == "fall"
+        # Look backwards for maximum
+        max_idx = cross_idx
+        prev_avg = moving_average(y_data, max_idx, backwards=True)
+        
+        for i in range(cross_idx - 1, start_idx, -1):
+            curr_avg = moving_average(y_data, i, backwards=True)
+            if curr_avg <= prev_avg:  # Stop when signal stops increasing
+                break
+            max_idx = i
+            prev_avg = curr_avg
+                
+        # Look forwards for minimum
+        min_idx = cross_idx
+        prev_avg = moving_average(y_data, min_idx)
+        
+        for i in range(cross_idx + 1, end_idx):
+            curr_avg = moving_average(y_data, i)
+            if curr_avg >= prev_avg:  # Stop when signal stops decreasing
+                break
+            min_idx = i
+            prev_avg = curr_avg
+    
+    print(f"Found min at index {min_idx}, y = {y_data[min_idx]}")
+    print(f"Found max at index {max_idx}, y = {y_data[max_idx]}")
+    
+    # Calculate reference levels
+    y_min = float(y_data[min_idx])
+    y_max = float(y_data[max_idx])
+    y_range = y_max - y_min
+    
+    # Calculate threshold levels
+    y_lower = y_min + lower_threshold * y_range
+    y_upper = y_min + upper_threshold * y_range
+    print(f"Calculated threshold levels: lower = {y_lower:.3f}, upper = {y_upper:.3f}")
+    
+    # Find times at threshold levels using interpolation
+    t_lower = threshold_cross(x_data, y_data, y_lower, mode, time_begin, time_end)
+    t_upper = threshold_cross(x_data, y_data, y_upper, mode, time_begin, time_end)
+    print(f"Found threshold crossings at t_lower = {t_lower:.6f}, t_upper = {t_upper:.6f}")
+    
+    if t_lower is None or t_upper is None:
+        return None
+        
+    # Calculate transition time
+    trans_time = abs(t_upper - t_lower)
+    print(f"Calculated transition time = {trans_time:.6f}")
+    
+    return trans_time
 

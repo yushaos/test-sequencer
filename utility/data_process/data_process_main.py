@@ -111,7 +111,7 @@ for req in config["test_requirements"]:
                                     low_limit=req["low_limit"],
                                     high_limit=req["high_limit"])
         elif req["func_name"] == "transition":
-            trans_time = dpf.transition_time(x_data, y_data,
+            trans_time = dpf.transition_duration(x_data, y_data,
                                           mode=req["mode"],
                                           lower_threshold=req["lower_threshold"],
                                           upper_threshold=req["upper_threshold"],
