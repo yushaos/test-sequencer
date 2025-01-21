@@ -154,9 +154,21 @@ def edge_time_diff(x1_data, y1_data, x2_data, y2_data, threshold1, threshold2,
     # If either crossing not found, return None
     if t1 is None or t2 is None:
         return None
-        
     # Return time difference (t2 - t1)
     return t2 - t1
+
+def EdgeTimeDiffLimit(x1_data, y1_data, x2_data, y2_data, threshold1, threshold2, 
+                     mode1="rise", mode2="rise",
+                     time_begin1=None, time_end1=None,
+                     time_begin2=None, time_end2=None,
+                     low_limit=None, high_limit=None):
+    time_diff = edge_time_diff(x1_data, y1_data, x2_data, y2_data,
+                             threshold1=threshold1, threshold2=threshold2,
+                             mode1=mode1, mode2=mode2,
+                             time_begin1=time_begin1, time_end1=time_end1,
+                             time_begin2=time_begin2, time_end2=time_end2)
+    pass_fail, value = result_check(time_diff, low_limit, high_limit)
+    return (pass_fail, value, time_diff)  # Return time difference as timestamp
 
 def transition_duration(x_data, y_data, min_level, mode="rise", lower_threshold=0.1, upper_threshold=0.9, time_begin=None, time_end=None):
     """Calculate rise/fall time between specified thresholds"""    
@@ -295,6 +307,14 @@ def transition_duration(x_data, y_data, min_level, mode="rise", lower_threshold=
     
     return trans_time
 
+def TransitionDurationLimit(x_data, y_data, min_level, mode="rise", lower_threshold=0.1, upper_threshold=0.9, 
+                          time_begin=None, time_end=None, low_limit=None, high_limit=None):
+    trans_time = transition_duration(x_data, y_data, min_level, mode, 
+                                   lower_threshold, upper_threshold,
+                                   time_begin, time_end)
+    pass_fail, value = result_check(trans_time, low_limit, high_limit)
+    return (pass_fail, value, trans_time)  # Return transition time as timestamp
+
 def pulse_width(x_data, y_data, threshold, mode="rise", time_begin=None, time_end=None):
     """
     Calculate pulse width by finding time between rising and falling edges (or vice versa)
@@ -315,6 +335,11 @@ def pulse_width(x_data, y_data, threshold, mode="rise", time_begin=None, time_en
     
     #print(f"First edge at t1={t1:.6f}s, Second edge at t2={t2:.6f}s")
     return t2 - t1
+
+def PulseWidthLimit(x_data, y_data, threshold, mode="rise", time_begin=None, time_end=None, low_limit=None, high_limit=None):
+    width = pulse_width(x_data, y_data, threshold, mode, time_begin, time_end)
+    pass_fail, value = result_check(width, low_limit, high_limit)
+    return (pass_fail, value, width)  # Return pulse width as timestamp
 
 def freq(x_data, y_data, time_begin=None, time_end=None):
     """
@@ -402,8 +427,6 @@ def PulseCount(x_data, y_data, threshold, time_begin=None, time_end=None):
     pulse_count = np.sum(edges == 1)
     
     return pulse_count
-
-
 
 
 

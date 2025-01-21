@@ -103,8 +103,7 @@ for req in config["test_requirements"]:
             x2_data = x2_channel[:]
             y2_data = y2_channel[:]
             
-            time_diff = dpf.edge_time_diff(x_data, y_data, 
-                                         x2_data, y2_data,
+            result = dpf.EdgeTimeDiffLimit(x_data, y_data, x2_data, y2_data,
                                          threshold1=req["threshold"],
                                          threshold2=req["threshold2"],
                                          mode1=req["mode"],
@@ -112,30 +111,27 @@ for req in config["test_requirements"]:
                                          time_begin1=req["time_begin"],
                                          time_end1=req["time_end"],
                                          time_begin2=req["time_begin2"],
-                                         time_end2=req["time_end2"])
-            result = dpf.result_check(time_diff,
-                                    low_limit=req["low_limit"],
-                                    high_limit=req["high_limit"])
+                                         time_end2=req["time_end2"],
+                                         low_limit=req["low_limit"],
+                                         high_limit=req["high_limit"])
         elif req["func_name"] == "transition_time":
-            trans_time = dpf.transition_duration(x_data, y_data,
-                                          mode=req["mode"],
-                                          lower_threshold=req["lower_threshold"],
-                                          upper_threshold=req["upper_threshold"],
-                                          time_begin=req["time_begin"],
-                                          time_end=req["time_end"],
-                                          min_level=req["min_level"])
-            result = dpf.result_check(trans_time,
-                                    low_limit=req["low_limit"],
-                                    high_limit=req["high_limit"])
+            result = dpf.TransitionDurationLimit(x_data, y_data,
+                                               mode=req["mode"],
+                                               lower_threshold=req["lower_threshold"],
+                                               upper_threshold=req["upper_threshold"],
+                                               time_begin=req["time_begin"],
+                                               time_end=req["time_end"],
+                                               min_level=req["min_level"],
+                                               low_limit=req["low_limit"],
+                                               high_limit=req["high_limit"])
         elif req["func_name"] == "pulse_width":
-            width = dpf.pulse_width(x_data, y_data,
-                                  threshold=req["threshold"],
-                                  mode=req["mode"],
-                                  time_begin=req["time_begin"],
-                                  time_end=req["time_end"])
-            result = dpf.result_check(width,
-                                    low_limit=req["low_limit"],
-                                    high_limit=req["high_limit"])
+            result = dpf.PulseWidthLimit(x_data, y_data,
+                                       threshold=req["threshold"],
+                                       mode=req["mode"],
+                                       time_begin=req["time_begin"],
+                                       time_end=req["time_end"],
+                                       low_limit=req["low_limit"],
+                                       high_limit=req["high_limit"])
         elif req["func_name"] == "frequency":
             frequency = dpf.freq(x_data, y_data,
                                time_begin=req["time_begin"],
