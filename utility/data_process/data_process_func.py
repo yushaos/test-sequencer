@@ -162,67 +162,57 @@ def transition_time(x_data, y_data, mode="rise", lower_threshold=0.1, upper_thre
     x_slice = x_data[start_idx:end_idx]
     y_slice = y_data[start_idx:end_idx]
     
-    # Find first valid transition
-    i = 1
-    while i < len(y_slice)-1:
-        if mode == "rise":
-            # Look for local minimum before rise
-            if y_slice[i] <= y_slice[i-1] and y_slice[i] <= y_slice[i+1]:
-                min_idx = i
-                min_val = y_slice[i]
-                start_i = i
+    # Find transition points
+    for i in range(1, len(y_slice)):
+        if mode == "rise" and y_slice[i] > y_slice[i-1]:  # Rising edge
+            y1, y2 = y_slice[i-1], y_slice[i]
+            x1, x2 = x_slice[i-1], x_slice[i]
+            
+            # Check min_level requirement
+            if min_level is not None and max(y1, y2) < min_level:
+                continue
                 
-                # Look for next local maximum
-                while i < len(y_slice)-1 and y_slice[i] <= y_slice[i+1]:
-                    i += 1
-                max_idx = i
-                max_val = y_slice[i]
+            # Calculate actual threshold values
+            amplitude = y2 - y1
+            low_thresh = y1 + amplitude * lower_threshold
+            high_thresh = y1 + amplitude * upper_threshold
+            
+            print(f"Found rising edge from ({x1:.6f}s, {y1:.6f}V) to ({x2:.6f}s, {y2:.6f}V)")
+            print(f"Threshold levels: {low_thresh:.6f}V and {high_thresh:.6f}V")
+            
+            # Linear interpolation for both thresholds
+            t1 = x1 + (low_thresh - y1) * (x2 - x1) / (y2 - y1)
+            t2 = x1 + (high_thresh - y1) * (x2 - x1) / (y2 - y1)
+            
+        elif mode == "fall" and y_slice[i] < y_slice[i-1]:  # Falling edge
+            y1, y2 = y_slice[i-1], y_slice[i]
+            x1, x2 = x_slice[i-1], x_slice[i]
+            
+            # Check min_level requirement
+            if min_level is not None and max(y1, y2) < min_level:
+                continue
                 
-                # Calculate actual thresholds for this transition
-                amplitude = max_val - min_val
-                low_thresh = min_val + amplitude * lower_threshold
-                high_thresh = min_val + amplitude * upper_threshold
+            # Calculate actual threshold values for falling edge
+            amplitude = y1 - y2  # Note: y1 is higher than y2 for falling edge
+            # Swap thresholds for falling edge
+            high_thresh = y1 - amplitude * lower_threshold  # 90% of initial value
+            low_thresh = y1 - amplitude * upper_threshold   # 10% of initial value
+            
+            print(f"Found falling edge from ({x1:.6f}s, {y1:.6f}V) to ({x2:.6f}s, {y2:.6f}V)")
+            print(f"Threshold levels: {high_thresh:.6f}V and {low_thresh:.6f}V")
+            
+            # Linear interpolation for both thresholds
+            t1 = x1 + (high_thresh - y1) * (x2 - x1) / (y2 - y1)  # Time at 90%
+            t2 = x1 + (low_thresh - y1) * (x2 - x1) / (y2 - y1)   # Time at 10%
+            
+        else:
+            continue
+            
+        print(f"Found crossings at t1={t1:.6f}s and t2={t2:.6f}s")
+        trans_time = t2 - t1
+        print(f"Found transition time: {trans_time:.6f}s")
+        return trans_time
                 
-                # Check if this rise meets min_level requirement
-                if min_level is None or max_val >= min_level:
-                    print(f"Found rising transition from {x_slice[min_idx]:.6f}s to {x_slice[max_idx]:.6f}s, "
-                          f"amplitude: {min_val:.6f}V to {max_val:.6f}V")
-                    print(f"Threshold levels: {low_thresh:.6f}V to {high_thresh:.6f}V")
-                    
-                    # Create window around transition
-                    window_start = max(0, min_idx)
-                    window_end = min(len(y_slice), max_idx + 1)
-                    
-                    x_window = x_slice[window_start:window_end]
-                    y_window = y_slice[window_start:window_end]
-                    
-                    print(f"\nAnalyzing transition window:")
-                    print(f"Window time: {x_window[0]:.6f}s to {x_window[-1]:.6f}s")
-                    print(f"Looking for crossings at {low_thresh:.6f}V and {high_thresh:.6f}V")
-                    
-                    # Create interpolation function
-                    f = interpolate.interp1d(x_window, y_window, kind='cubic')
-                    
-                    # Create fine x points for interpolation
-                    x_fine = np.linspace(x_window[0], x_window[-1], num=10000)  # Increased resolution
-                    y_fine = f(x_fine)
-                    
-                    try:
-                        t1_idx = next(i for i, y in enumerate(y_fine) if y >= low_thresh)
-                        t2_idx = next(i for i, y in enumerate(y_fine) if y >= high_thresh)
-                        t1 = x_fine[t1_idx]
-                        t2 = x_fine[t2_idx]
-                        print(f"Found crossings at t1={t1:.6f}s and t2={t2:.6f}s")
-                        
-                        trans_time = abs(t2 - t1)
-                        print(f"Found transition time: {trans_time:.6f}s")
-                        return trans_time
-                        
-                    except StopIteration:
-                        print("Could not find both threshold crossings")
-                        
-        i += 1
-    
     print("No valid transitions found")
     return None
 
