@@ -146,7 +146,7 @@ def transition_duration(x_data, y_data, min_level, mode="rise", lower_threshold=
         print(f"Could not find crossing at min_level={min_level} between t={time_begin} and t={time_end}")
         return None
     
-    print(f"Found min_level crossing at t = {t_cross:.6f}")
+    #print(f"Found min_level crossing at t = {t_cross:.6f}")
     
     # Find indices for the specified time range
     start_idx = 0
@@ -165,7 +165,7 @@ def transition_duration(x_data, y_data, min_level, mode="rise", lower_threshold=
     # Find the index closest to crossing time
     try:
         cross_idx = next(i for i, x in enumerate(x_data[start_idx:end_idx]) if x >= t_cross) + start_idx
-        print(f"Cross index found at t = {x_data[cross_idx]:.6f}")
+        #print(f"Cross index found at t = {x_data[cross_idx]:.6f}")
     except StopIteration:
         print(f"Could not find index for crossing time t={t_cross}")
         return None
@@ -226,8 +226,8 @@ def transition_duration(x_data, y_data, min_level, mode="rise", lower_threshold=
             min_idx = i
             prev_avg = curr_avg
     
-    print(f"Found min at t = {x_data[min_idx]:.6f}, y = {float(y_data[min_idx]):.6f}")
-    print(f"Found max at t = {x_data[max_idx]:.6f}, y = {float(y_data[max_idx]):.6f}")
+    #print(f"Found min at t = {x_data[min_idx]:.6f}, y = {float(y_data[min_idx]):.6f}")
+    #print(f"Found max at t = {x_data[max_idx]:.6f}, y = {float(y_data[max_idx]):.6f}")
     
     # Calculate reference levels
     y_min = float(y_data[min_idx])
@@ -237,7 +237,7 @@ def transition_duration(x_data, y_data, min_level, mode="rise", lower_threshold=
     # Calculate threshold levels
     y_lower = y_min + lower_threshold * y_range
     y_upper = y_min + upper_threshold * y_range
-    print(f"Calculated threshold levels: lower = {y_lower:.3f}, upper = {y_upper:.3f}")
+    #print(f"Calculated threshold levels: lower = {y_lower:.3f}, upper = {y_upper:.3f}")
     
     # Handle case where transition happens between adjacent points
     if abs(max_idx - min_idx) <= 1:
@@ -253,7 +253,7 @@ def transition_duration(x_data, y_data, min_level, mode="rise", lower_threshold=
             t_upper = x0 + (y_lower - y0) * (x1 - x0)/(y1 - y0)
             
         trans_time = abs(t_upper - t_lower)
-        print(f"Interpolated transition time = {trans_time:.6f}")
+        #print(f"Interpolated transition time = {trans_time:.6f}")
         return trans_time
     
     # Find times at threshold levels using interpolation within min_idx to max_idx range
@@ -267,11 +267,11 @@ def transition_duration(x_data, y_data, min_level, mode="rise", lower_threshold=
         print("Could not find threshold crossings within min-max range")
         return None
         
-    print(f"Found threshold crossings at t_lower = {t_lower:.6f}, t_upper = {t_upper:.6f}")
+    #print(f"Found threshold crossings at t_lower = {t_lower:.6f}, t_upper = {t_upper:.6f}")
     
     # Calculate transition time
     trans_time = abs(t_upper - t_lower)
-    print(f"Calculated transition time = {trans_time:.6f}")
+    #print(f"Calculated transition time = {trans_time:.6f}")
     
     return trans_time
 
