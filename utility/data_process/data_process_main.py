@@ -82,21 +82,19 @@ for req in config["test_requirements"]:
                                 high_limit=req["high_limit"])
             
         elif req["func_name"] == "average":
-            avg_value = dpf.average_check(x_data, y_data,
-                                        time_begin=req["time_begin"],
-                                        time_end=req["time_end"])
-            result = dpf.result_check(avg_value,
+            result = dpf.AverageLimit(x_data, y_data,
+                                    time_begin=req["time_begin"],
+                                    time_end=req["time_end"],
                                     low_limit=req["low_limit"],
                                     high_limit=req["high_limit"])
         elif req["func_name"] == "threshold_cross":
-            cross_time = dpf.threshold_cross(x_data, y_data,
+            result = dpf.ThresholdCrossLimit(x_data, y_data,
                                            threshold=req["threshold"],
                                            mode=req["mode"],
                                            time_begin=req["time_begin"],
-                                           time_end=req["time_end"])
-            result = dpf.result_check(cross_time,
-                                    low_limit=req["low_limit"],
-                                    high_limit=req["high_limit"])
+                                           time_end=req["time_end"],
+                                           low_limit=req["low_limit"],
+                                           high_limit=req["high_limit"])
         elif req["func_name"] == "edge_time_diff":
             # Get second channel data
             x2_channel_name = f"{req['channel_name2']}_Time"

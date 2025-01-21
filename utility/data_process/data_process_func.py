@@ -87,6 +87,11 @@ def average_check(x_data, y_data, time_begin=None, time_end=None):
     
     return avg_value
 
+def AverageLimit(x_data, y_data, time_begin=None, time_end=None, low_limit=None, high_limit=None):
+    avg_value = average_check(x_data, y_data, time_begin, time_end)
+    pass_fail, value = result_check(avg_value, low_limit, high_limit)
+    return (pass_fail, value, None)  # Returns None for timestamp since average doesn't have one
+
 def threshold_cross(x_data, y_data, threshold, mode="rise", time_begin=None, time_end=None):
     """
     Find time when signal crosses threshold
@@ -117,9 +122,13 @@ def threshold_cross(x_data, y_data, threshold, mode="rise", time_begin=None, tim
             t_cross = x_slice[i-1] + (threshold - y_slice[i-1]) * \
                      (x_slice[i] - x_slice[i-1]) / (y_slice[i] - y_slice[i-1])
             return t_cross
-    
     # No crossing found
     return None
+
+def ThresholdCrossLimit(x_data, y_data, threshold, mode="rise", time_begin=None, time_end=None, low_limit=None, high_limit=None):
+    cross_time = threshold_cross(x_data, y_data, threshold, mode, time_begin, time_end)
+    pass_fail, value = result_check(cross_time, low_limit, high_limit)
+    return (pass_fail, value, cross_time)  # Return crossing time as the timestamp
 
 def edge_time_diff(x1_data, y1_data, x2_data, y2_data, threshold1, threshold2, 
                   mode1="rise", mode2="rise",
@@ -393,6 +402,8 @@ def PulseCount(x_data, y_data, threshold, time_begin=None, time_end=None):
     pulse_count = np.sum(edges == 1)
     
     return pulse_count
+
+
 
 
 
