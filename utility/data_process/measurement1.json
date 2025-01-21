@@ -134,8 +134,8 @@
 			"lower_threshold": 0.1,
 			"upper_threshold": 0.9,
 			"min_level": 5,
-            "time_begin": 1.1,
-            "time_end": 1.2
+            "time_begin": 1.05,
+            "time_end": 1.15
         },
 		{
             "req_id": "REQ011",
@@ -146,11 +146,26 @@
 			"mode": "fall",
 			"low_limit": 0.00005,
             "high_limit": 0.00015,
-			"lower_threshold": 0.1,
-			"upper_threshold": 0.9,
+			"lower_threshold": 0.2,
+			"upper_threshold": 0.8,
 			"min_level": -5,
             "time_begin": 1.1,
             "time_end": 1.3
+        },
+		{
+            "req_id": "REQ012",
+			"Group": "Group1",
+            "channel_name": "A2",
+            "req_level": "Critical",
+            "func_name": "transition_time",
+			"mode": "fall",
+			"low_limit": 0.00005,
+            "high_limit": 0.00015,
+			"lower_threshold": 0.1,
+			"upper_threshold": 0.9,
+			"min_level": 40,
+            "time_begin": null,
+            "time_end": null
         }
     ]
 }

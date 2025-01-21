@@ -142,9 +142,11 @@ def transition_duration(x_data, y_data, min_level, mode="rise", lower_threshold=
     """Calculate rise/fall time between specified thresholds"""    
     # Find the time when signal crosses min_level
     t_cross = threshold_cross(x_data, y_data, min_level, mode, time_begin, time_end)
-    print(f"Found min_level crossing at t = {t_cross:.6f}")
     if t_cross is None:
+        print(f"Could not find crossing at min_level={min_level} between t={time_begin} and t={time_end}")
         return None
+    
+    print(f"Found min_level crossing at t = {t_cross:.6f}")
     
     # Find indices for the specified time range
     start_idx = 0
@@ -155,9 +157,18 @@ def transition_duration(x_data, y_data, min_level, mode="rise", lower_threshold=
     if time_end is not None:
         end_idx = next((i for i, x in enumerate(x_data) if x > time_end), len(x_data))
     
+    # Verify we have enough data points in range
+    if end_idx - start_idx < 2:
+        print(f"Not enough data points between t={time_begin} and t={time_end}")
+        return None
+        
     # Find the index closest to crossing time
-    cross_idx = next(i for i, x in enumerate(x_data[start_idx:end_idx]) if x >= t_cross) + start_idx
-    print(f"Cross index found at t = {x_data[cross_idx]:.6f}")
+    try:
+        cross_idx = next(i for i, x in enumerate(x_data[start_idx:end_idx]) if x >= t_cross) + start_idx
+        print(f"Cross index found at t = {x_data[cross_idx]:.6f}")
+    except StopIteration:
+        print(f"Could not find index for crossing time t={t_cross}")
+        return None
     
     # Function to calculate moving average
     def moving_average(data, idx, window=10, backwards=False):
