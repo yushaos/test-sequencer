@@ -16,6 +16,9 @@ class DataProcessGUI:
         self.default_font = ('TkDefaultFont', self.font_size)
         self.tree_font = ('TkDefaultFont', self.font_size)
         
+        # Set table column width
+        self.column_width = 120  # User can modify this value
+        
         # Configure styles with font
         style = ttk.Style()
         style.configure('TLabel', font=self.default_font)
@@ -48,6 +51,9 @@ class DataProcessGUI:
         self.tdms_file_path = tk.StringVar()
         self.config_file_path = tk.StringVar()
         self.results = []
+        
+        # Prepopulate table with empty columns
+        self.initialize_table()
 
     def create_file_selection_frame(self):
         # TDMS file selection
@@ -141,14 +147,13 @@ class DataProcessGUI:
         
         # Configure columns - add Status and Result as first two columns
         base_columns = ["Status", "Result"]  # These will be first
-        config_columns = ["col1", "col2", "col3", "col4", "col5", "col6", "col7", "col8", "col9", "col10", 
-                         "col11", "col12", "col13", "col14", "col15"]  # Add more if needed
+        config_columns = [f"col{i}" for i in range(1, 16)]  # 13 empty columns
         columns = base_columns + config_columns
         self.tree.configure(columns=columns)
         
         # Configure each column with fixed width and center alignment
         for col in columns:
-            self.tree.column(col, width=120, anchor='center')
+            self.tree.column(col, width=self.column_width, minwidth=self.column_width, stretch=False, anchor='center')
             self.tree.heading(col, text="")
         
         # Style for different row types
@@ -231,6 +236,18 @@ class DataProcessGUI:
         finally:
             # Reset status to Ready
             self.run_status.configure(text="Ready")
+
+    def initialize_table(self):
+        # Configure base columns
+        base_columns = ["Status", "Result"]
+        config_columns = [f"col{i}" for i in range(1, 16)]  # 15 empty columns
+        columns = base_columns + config_columns
+        self.tree.configure(columns=columns)
+        
+        # Configure each column with fixed width and center alignment
+        for col in columns:
+            self.tree.column(col, width=self.column_width, minwidth=self.column_width, stretch=False, anchor='center')
+            self.tree.heading(col, text="")
 
 if __name__ == "__main__":
     root = tk.Tk()
