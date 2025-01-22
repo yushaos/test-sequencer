@@ -11,6 +11,19 @@ class DataProcessGUI:
         self.root = root
         self.root.title("Data Process GUI")
         
+        # Set font size for GUI
+        self.font_size = 13  # User can modify this value
+        self.default_font = ('TkDefaultFont', self.font_size)
+        self.tree_font = ('TkDefaultFont', self.font_size)
+        
+        # Configure styles with font
+        style = ttk.Style()
+        style.configure('TLabel', font=self.default_font)
+        style.configure('TButton', font=self.default_font)
+        style.configure('TEntry', font=self.default_font)
+        style.configure('Treeview', font=self.tree_font)
+        style.configure('Treeview.Heading', font=self.tree_font)
+        
         # Make window fullscreen
         self.root.state('zoomed')
         
@@ -55,9 +68,13 @@ class DataProcessGUI:
         
         ttk.Button(run_frame, text="RUN", command=self.run_process).grid(row=0, column=0, padx=5)
         
+        # Add status label
+        self.run_status = ttk.Label(run_frame, text="Ready")
+        self.run_status.grid(row=0, column=1, padx=5)
+        
         # Results summary frame
         self.summary_frame = ttk.Frame(run_frame)
-        self.summary_frame.grid(row=0, column=1, padx=20)
+        self.summary_frame.grid(row=0, column=2, padx=20)
         
         self.pass_count = ttk.Label(self.summary_frame, text="Pass: 0")
         self.pass_count.grid(row=0, column=0, padx=5)
@@ -122,9 +139,11 @@ class DataProcessGUI:
         for item in self.tree.get_children():
             self.tree.delete(item)
         
-        # Configure multiple columns instead of single column
-        columns = ["col1", "col2", "col3", "col4", "col5", "col6", "col7", "col8", "col9", "col10", 
-                  "col11", "col12", "col13", "col14", "col15"]  # Add more if needed
+        # Configure columns - add Status and Result as first two columns
+        base_columns = ["Status", "Result"]  # These will be first
+        config_columns = ["col1", "col2", "col3", "col4", "col5", "col6", "col7", "col8", "col9", "col10", 
+                         "col11", "col12", "col13", "col14", "col15"]  # Add more if needed
+        columns = base_columns + config_columns
         self.tree.configure(columns=columns)
         
         # Configure each column with fixed width and center alignment
@@ -139,8 +158,8 @@ class DataProcessGUI:
         
         # Add results to table
         for req, (req_id, func_name, result) in zip(config["test_requirements"], results):
-            # Create header values
-            headers = list(req.keys())
+            # Create header values - add empty cells for Status and Result columns
+            headers = ["Status", "Result"] + list(req.keys())
             # Pad headers list to match number of columns
             headers.extend([""] * (len(columns) - len(headers)))
             
@@ -148,18 +167,18 @@ class DataProcessGUI:
             header_item = self.tree.insert("", "end", values=headers, tags=("header",))
             self.tree.tag_configure("header", background="gray90")
             
-            # Create values list
-            values = [str(value) for value in req.values()]
-            # Pad values list to match number of columns
-            values.extend([""] * (len(columns) - len(values)))
-            
-            # Determine result status
+            # Determine result status and value
             if isinstance(result, tuple):
                 status = "PASS" if result[0] else "FAIL"
                 result_value = str(result[1])
             else:
                 status = "ERROR"
                 result_value = str(result)
+            
+            # Create values list - start with status and result
+            values = [status, result_value] + [str(value) for value in req.values()]
+            # Pad values list to match number of columns
+            values.extend([""] * (len(columns) - len(values)))
             
             # Insert value row with conditional highlighting
             value_item = self.tree.insert("", "end", values=values)
@@ -176,13 +195,17 @@ class DataProcessGUI:
             return
             
         try:
+            # Update status to Running
+            self.run_status.configure(text="Running...")
+            self.root.update()  # Force GUI update
+            
             # Load config
             with open(config_path) as f:
                 config = json.load(f)
             
             # Process requirements
             with Pool(processes=cpu_count()) as pool:
-                dpm.tdms_file = TdmsFile(tdms_path)  # Set the tdms_file for processing
+                dpm.tdms_file = TdmsFile(tdms_path)
                 results = pool.map(dpm.process_requirement, config["test_requirements"])
             
             # Update results display
@@ -205,6 +228,9 @@ class DataProcessGUI:
             
         except Exception as e:
             tk.messagebox.showerror("Error", str(e))
+        finally:
+            # Reset status to Ready
+            self.run_status.configure(text="Ready")
 
 if __name__ == "__main__":
     root = tk.Tk()
