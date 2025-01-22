@@ -81,15 +81,21 @@ class DataProcessGUI:
         run_frame = ttk.Frame(self.main_frame)
         run_frame.grid(row=2, column=0, columnspan=3, pady=10)
         
-        ttk.Button(run_frame, text="RUN", command=self.run_process).grid(row=0, column=0, padx=5)
+        # Add output type dropdown
+        self.output_var = tk.StringVar(value="Not Write Output")
+        output_options = ["Not Write Output", "Write text output", "Write to TDMS"]
+        output_dropdown = ttk.Combobox(run_frame, textvariable=self.output_var, values=output_options, state="readonly")
+        output_dropdown.grid(row=0, column=0, padx=5)
+        
+        ttk.Button(run_frame, text="RUN", command=self.run_process).grid(row=0, column=1, padx=5)
         
         # Add status label
         self.run_status = ttk.Label(run_frame, text="Ready")
-        self.run_status.grid(row=0, column=1, padx=5)
+        self.run_status.grid(row=0, column=2, padx=5)
         
         # Results summary frame
         self.summary_frame = ttk.Frame(run_frame)
-        self.summary_frame.grid(row=0, column=2, padx=20)
+        self.summary_frame.grid(row=0, column=3, padx=20)
         
         self.pass_count = ttk.Label(self.summary_frame, text="Pass: 0")
         self.pass_count.grid(row=0, column=0, padx=5)
@@ -223,6 +229,64 @@ class DataProcessGUI:
                 self.tree.tag_configure("failed", background="yellow", font=self.value_font)
                 self.tree.item(value_item, tags=("failed",))
 
+    def write_text_output(self, tdms_path, results_data):
+        """Write results to text file"""
+        base_path = os.path.splitext(tdms_path)[0]
+        output_path = f"{base_path}_measurement.txt"
+        
+        # Handle file name if already exists
+        counter = 1
+        while os.path.exists(output_path):
+            output_path = f"{base_path}_measurement_{counter}.txt"
+            counter += 1
+        
+        with open(output_path, 'w') as f:
+            # Write each row from the table
+            for item in self.tree.get_children():
+                values = self.tree.item(item)['values']
+                f.write('\t'.join(str(v) for v in values) + '\n')
+
+    def write_tdms_output(self, tdms_path, results_data):
+        """Write results to TDMS file"""
+        from nptdms import TdmsWriter, RootObject, GroupObject, ChannelObject
+        
+        # Prepare data for each row pair (header + value)
+        channels = []
+        items = self.tree.get_children()
+        
+        # Process items in pairs (header row + value row)
+        for i in range(0, len(items), 2):
+            header_item = items[i]
+            value_item = items[i + 1]
+            
+            header_values = self.tree.item(header_item)['values']
+            value_values = self.tree.item(value_item)['values']
+            
+            # Create channel for each measurement (pair of rows)
+            channel_name = f"Measurement_{(i//2)+1}"
+            
+            # Convert row data to properties dictionary using header as keys
+            properties = {}
+            for header, value in zip(header_values, value_values):
+                if header and value:  # Only add non-empty key-value pairs
+                    properties[str(header)] = str(value)
+            
+            channel = ChannelObject("measurement", channel_name, [], properties=properties)
+            channels.append(channel)
+        
+        # Write to TDMS file
+        with TdmsWriter(tdms_path, mode='a') as tdms_writer:
+            tdms_writer.write_segment(channels)
+
+    def handle_output(self, tdms_path, results_data):
+        """Handle different output options"""
+        output_type = self.output_var.get()
+        
+        if output_type == "Write text output":
+            self.write_text_output(tdms_path, results_data)
+        elif output_type == "Write to TDMS":
+            self.write_tdms_output(tdms_path, results_data)
+
     def run_process(self):
         tdms_path = self.tdms_entry.get()
         config_path = self.config_entry.get()
@@ -262,6 +326,9 @@ class DataProcessGUI:
             
             # Update results table
             self.update_results_table(config, results)
+            
+            # Handle output based on selection
+            self.handle_output(tdms_path, results)
             
         except Exception as e:
             tk.messagebox.showerror("Error", str(e))

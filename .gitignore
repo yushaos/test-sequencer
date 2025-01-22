@@ -29,3 +29,6 @@ build/
 # Cache
 __pycache__/
 .cache/
+
+#all text files
+*.txt
