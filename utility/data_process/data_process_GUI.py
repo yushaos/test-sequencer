@@ -11,6 +11,11 @@ class DataProcessGUI:
         self.root = root
         self.root.title("Data Process GUI")
         
+        # Set program icon
+        icon_path = r"C:\Users\yusha\Desktop\test sequencer\utility\data_process\MeasurementIcon.ico"
+        if os.path.exists(icon_path):
+            self.root.iconbitmap(icon_path)
+        
         # Set font size for GUI
         self.font_size = 13  # User can modify this value
         self.default_font = ('TkDefaultFont', self.font_size)
