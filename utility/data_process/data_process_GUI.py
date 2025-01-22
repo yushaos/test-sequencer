@@ -122,10 +122,15 @@ class DataProcessGUI:
         for item in self.tree.get_children():
             self.tree.delete(item)
         
-        # Configure single column to hold all text
-        self.tree.configure(columns=["value"])
-        self.tree.column("value", width=1000)  # Make column wide
-        self.tree.heading("value", text="")  # Empty heading
+        # Configure multiple columns instead of single column
+        columns = ["col1", "col2", "col3", "col4", "col5", "col6", "col7", "col8", "col9", "col10", 
+                  "col11", "col12", "col13", "col14", "col15"]  # Add more if needed
+        self.tree.configure(columns=columns)
+        
+        # Configure each column with fixed width and center alignment
+        for col in columns:
+            self.tree.column(col, width=120, anchor='center')
+            self.tree.heading(col, text="")
         
         # Style for different row types
         style = ttk.Style()
@@ -134,21 +139,19 @@ class DataProcessGUI:
         
         # Add results to table
         for req, (req_id, func_name, result) in zip(config["test_requirements"], results):
-            # Create header string with fixed-width columns using ljust
-            headers = []
-            for key in req.keys():
-                headers.append(key.ljust(15))  # Fixed 15 characters width, left-justified
-            header_str = "  ".join(headers)  # Add 2 spaces between columns
+            # Create header values
+            headers = list(req.keys())
+            # Pad headers list to match number of columns
+            headers.extend([""] * (len(columns) - len(headers)))
             
             # Insert header row with gray background
-            header_item = self.tree.insert("", "end", values=[header_str], tags=("header",))
+            header_item = self.tree.insert("", "end", values=headers, tags=("header",))
             self.tree.tag_configure("header", background="gray90")
             
-            # Create values string with same fixed-width alignment
-            values = []
-            for value in req.values():
-                values.append(str(value).ljust(15))  # Match header width
-            value_str = "  ".join(values)  # Match header spacing
+            # Create values list
+            values = [str(value) for value in req.values()]
+            # Pad values list to match number of columns
+            values.extend([""] * (len(columns) - len(values)))
             
             # Determine result status
             if isinstance(result, tuple):
@@ -159,7 +162,7 @@ class DataProcessGUI:
                 result_value = str(result)
             
             # Insert value row with conditional highlighting
-            value_item = self.tree.insert("", "end", values=[value_str])
+            value_item = self.tree.insert("", "end", values=values)
             if status != "PASS":
                 self.tree.tag_configure("failed", background="yellow")
                 self.tree.item(value_item, tags=("failed",))
