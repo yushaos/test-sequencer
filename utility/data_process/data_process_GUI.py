@@ -16,21 +16,25 @@ class DataProcessGUI:
         if os.path.exists(icon_path):
             self.root.iconbitmap(icon_path)
         
-        # Set font size for GUI
-        self.font_size = 13  # User can modify this value
+        # Set font sizes for GUI
+        self.font_size = 12  # User can modify this value
+        self.header_font_size = self.font_size
+        self.value_font_size = self.font_size + 1
+        
         self.default_font = ('TkDefaultFont', self.font_size)
-        self.tree_font = ('TkDefaultFont', self.font_size)
+        self.header_font = ('TkDefaultFont', self.header_font_size)
+        self.value_font = ('TkDefaultFont', self.value_font_size)
         
         # Set table column width
-        self.column_width = 120  # User can modify this value
+        self.column_width = 130  # User can modify this value
         
         # Configure styles with font
         style = ttk.Style()
         style.configure('TLabel', font=self.default_font)
         style.configure('TButton', font=self.default_font)
         style.configure('TEntry', font=self.default_font)
-        style.configure('Treeview', font=self.tree_font)
-        style.configure('Treeview.Heading', font=self.tree_font)
+        style.configure('Treeview', font=self.value_font)
+        style.configure('Treeview.Heading', font=self.header_font)
         
         # Make window fullscreen
         self.root.state('zoomed')
@@ -150,10 +154,20 @@ class DataProcessGUI:
         for item in self.tree.get_children():
             self.tree.delete(item)
         
-        # Configure columns - add Status and Result as first two columns
-        base_columns = ["Status", "Result"]  # These will be first
-        config_columns = [f"col{i}" for i in range(1, 16)]  # 13 empty columns
-        columns = base_columns + config_columns
+        # Configure style for header and value rows
+        style = ttk.Style()
+        style.configure("Header.Treeview", font=self.header_font)
+        style.configure("Value.Treeview", font=self.value_font)
+        style.configure("Header.Treeview.Row", background="gray25", foreground="white")
+        style.configure("Failed.Treeview.Row", background="yellow")
+        
+        # Configure columns with new order
+        base_columns = ["Status", "req_id", "channel_name", "Result", "low_limit", "high_limit"]
+        excluded_columns = ["Group"]  # Columns to skip
+        
+        # Add remaining config columns
+        remaining_columns = [f"col{i}" for i in range(1, 16)]  # Padding columns
+        columns = base_columns + remaining_columns
         self.tree.configure(columns=columns)
         
         # Configure each column with fixed width and center alignment
@@ -161,21 +175,22 @@ class DataProcessGUI:
             self.tree.column(col, width=self.column_width, minwidth=self.column_width, stretch=False, anchor='center')
             self.tree.heading(col, text="")
         
-        # Style for different row types
-        style = ttk.Style()
-        style.configure("Header.Treeview.Row", background="gray90")
-        style.configure("Failed.Treeview.Row", background="yellow")
-        
         # Add results to table
         for req, (req_id, func_name, result) in zip(config["test_requirements"], results):
-            # Create header values - add empty cells for Status and Result columns
-            headers = ["Status", "Result"] + list(req.keys())
+            # Create header values with new order
+            headers = ["Status", "req_id", "channel_name", "Result", "low_limit", "high_limit"]
+            
+            # Add remaining headers except excluded ones
+            for key in req.keys():
+                if key not in headers and key not in excluded_columns:
+                    headers.append(key)
+            
             # Pad headers list to match number of columns
             headers.extend([""] * (len(columns) - len(headers)))
             
-            # Insert header row with gray background
+            # Insert header row with dark gray background and white text
             header_item = self.tree.insert("", "end", values=headers, tags=("header",))
-            self.tree.tag_configure("header", background="gray90")
+            self.tree.tag_configure("header", background="gray25", foreground="white")
             
             # Determine result status and value
             if isinstance(result, tuple):
@@ -185,15 +200,27 @@ class DataProcessGUI:
                 status = "ERROR"
                 result_value = str(result)
             
-            # Create values list - start with status and result
-            values = [status, result_value] + [str(value) for value in req.values()]
+            # Create values list with new order
+            values = [status]  # Status
+            values.append(req.get("req_id", ""))  # req_id
+            values.append(req.get("channel_name", ""))  # channel_name
+            values.append(result_value)  # Result
+            values.append(str(req.get("low_limit", "")))  # low_limit
+            values.append(str(req.get("high_limit", "")))  # high_limit
+            
+            # Add remaining values except excluded ones
+            for key in req.keys():
+                if key not in ["req_id", "channel_name", "low_limit", "high_limit", "Group"]:
+                    values.append(str(req.get(key, "")))
+            
             # Pad values list to match number of columns
             values.extend([""] * (len(columns) - len(values)))
             
             # Insert value row with conditional highlighting
-            value_item = self.tree.insert("", "end", values=values)
+            value_item = self.tree.insert("", "end", values=values, tags=("value",))
+            self.tree.tag_configure("value", font=self.value_font)  # Apply larger font to value rows
             if status != "PASS":
-                self.tree.tag_configure("failed", background="yellow")
+                self.tree.tag_configure("failed", background="yellow", font=self.value_font)
                 self.tree.item(value_item, tags=("failed",))
 
     def run_process(self):
@@ -243,10 +270,10 @@ class DataProcessGUI:
             self.run_status.configure(text="Ready")
 
     def initialize_table(self):
-        # Configure base columns
-        base_columns = ["Status", "Result"]
-        config_columns = [f"col{i}" for i in range(1, 16)]  # 15 empty columns
-        columns = base_columns + config_columns
+        # Configure base columns with new order
+        base_columns = ["Status", "req_id", "channel_name", "Result", "low_limit", "high_limit"]
+        remaining_columns = [f"col{i}" for i in range(1, 16)]  # Padding columns
+        columns = base_columns + remaining_columns
         self.tree.configure(columns=columns)
         
         # Configure each column with fixed width and center alignment
