@@ -1,6 +1,7 @@
 from nptdms import TdmsFile
 import data_process_func as dpf
 import json
+from multiprocessing import Pool, cpu_count
 
 # Open TDMS file
 tdms_file_path = "C:/Users/yusha/Desktop/test sequencer/utility/data_process/dummy_data.tdms"
@@ -49,8 +50,8 @@ def print_result(req_id, func_name, result_data):
     else:
         print(f"REQ {req_id}: {status}")
 
-# Process each test requirement
-for req in config["test_requirements"]:
+def process_requirement(req):
+    """Process a single test requirement"""
     try:
         # Get channel names
         y_channel_name = req["channel_name"]
@@ -153,12 +154,20 @@ for req in config["test_requirements"]:
                                        low_limit=req["low_limit"],
                                        high_limit=req["high_limit"])
         
-        # Print result only if we have a supported function
-        if result is not None:
-            print_result(req['req_id'], req['func_name'], result)
-        else:
-            print(f"Skipping {req['req_id']}: Unknown function '{req['func_name']}'")
-            
+        # Return results instead of printing
+        return req['req_id'], req['func_name'], result
+        
     except Exception as e:
-        print(f"Error processing {req['req_id']}: {str(e)}")
-        continue
+        return req['req_id'], None, f"Error: {str(e)}"
+
+if __name__ == '__main__':
+    # Process requirements in parallel
+    with Pool(processes=cpu_count()) as pool:
+        results = pool.map(process_requirement, config["test_requirements"])
+        
+    # Print results in order
+    for req_id, func_name, result in results:
+        if func_name:
+            print_result(req_id, func_name, result)
+        else:
+            print(f"Error processing {req_id}: {result}")
